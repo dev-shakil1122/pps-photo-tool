@@ -1,0 +1,495 @@
+:root {
+    --primary-color: #2c3e50;
+    /* Dark Blue/Black */
+    --accent-color: #34495e;
+    --text-color: #333;
+    --border-color: #3498db;
+    /* Blue separator */
+    --bg-color: #fff;
+    --base-font-size: 14px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #525659;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    padding-top: 80px;
+    font-size: var(--base-font-size);
+    color: var(--text-color);
+    align-items: flex-start;
+    /* Prevent stretching */
+}
+
+.page {
+    background-color: white;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 40px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header h1 {
+    font-size: 32px;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 10px;
+    font-weight: 800;
+}
+
+.contact-info {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+
+}
+
+.profile-image-container {
+    width: 150px;
+    height: 180px;
+    overflow: hidden;
+    /* Optional: border or shadow */
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Main Layout Grid */
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    flex: 1;
+}
+
+/* Columns */
+.left-column {
+    padding-right: 20px;
+}
+
+.right-column {
+    border-left: 2px solid var(--border-color);
+    padding-left: 20px;
+}
+
+/* Section Styling */
+section {
+    margin-bottom: 25px;
+}
+
+.section-title h3 {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: capitalize;
+    border-bottom: 2px solid #000;
+    padding-bottom: 3px;
+    margin-bottom: 15px;
+    display: inline-block;
+    min-width: 200px;
+}
+
+/* Lists */
+ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+/* Work Experience Structure */
+.job-item {
+    margin-bottom: 20px;
+}
+
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    margin-bottom: 2px;
+    font-size: 16px;
+}
+
+.job-company {
+    font-weight: 700;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+/* Personal Details */
+.detail-row {
+    margin-bottom: 5px;
+    display: flex;
+    gap: 10px;
+    font-size: 0.9em;
+    /* Relative to base font size for scaling */
+}
+
+.detail-row strong {
+    min-width: 100px;
+}
+
+/* PDF Toolbar (Copied from Template 1) */
+.pdf-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 56px;
+    background-color: #323639;
+    color: #f1f1f1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+}
+
+.doc-title {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    color: #ccc;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.action-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Edit Controls - Dynamic Add/Remove (Copied from Template 1) */
+.editable-container {
+    position: relative;
+}
+
+.editable-container:hover .edit-controls {
+    display: flex;
+    opacity: 1;
+}
+
+.edit-controls {
+    display: none;
+    position: absolute;
+    right: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+    gap: 8px;
+    padding: 10px 0 10px 10px;
+    z-index: 100;
+}
+
+.edit-btn {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+    transition: transform 0.1s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.edit-btn:hover {
+    transform: scale(1.1);
+}
+
+.add-item-btn {
+    background-color: var(--primary-color);
+}
+
+.remove-item-btn {
+    background-color: #c0392b;
+    /* Hardcoded red since var might be missing */
+}
+
+/* Specific Adjustments for nested items */
+li.editable-container {
+    padding-right: 0;
+}
+
+/* Personal Details Rows */
+.detail-row.editable-container {
+    display: flex;
+    align-items: center;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+        width: 210mm;
+        height: 297mm;
+        overflow: hidden !important;
+    }
+
+    .pdf-toolbar,
+    .edit-controls,
+    .action-btn {
+        display: none !important;
+    }
+
+    .page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: hidden !important;
+        transform: none !important;
+        border: none !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Prevent breaks */
+    .section,
+    .job-item,
+    li,
+    .detail-row {
+        break-inside: avoid;
+    }
+}
+
+.exporting .pdf-toolbar,
+.exporting .edit-controls {
+    display: none !important;
+}
+
+/* --- Styles Moved from Inline --- */
+:root {
+    --font-size: 14px;
+    --section-spacing: 20px;
+}
+
+body {
+    background: #555;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding-top: 60px;
+}
+
+.page {
+    font-size: var(--font-size);
+    min-height: 297mm;
+    /* Allow growth */
+    height: auto;
+    overflow: visible;
+}
+
+/* Toolbar Styles */
+.pdf-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toolbar-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s;
+}
+
+.toolbar-btn:hover {
+    background: #2980b9;
+}
+
+.font-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+}
+
+/* Print Override */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    .pdf-toolbar,
+    .edit-controls {
+        display: none !important;
+    }
+
+    .page {
+        box-shadow: none;
+        margin: 0;
+        width: 210mm;
+        min-height: 297mm;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    /* Prevent awkward breaks */
+    .job-item,
+    .section,
+    .section-title,
+    li,
+    .detail-row {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+/* PDF Generation Styles */
+body.generating-pdf {
+    background: white;
+    padding: 0;
+    margin: 0;
+}
+
+body.generating-pdf .pdf-toolbar,
+body.generating-pdf .edit-controls {
+    display: none !important;
+}
+
+body.generating-pdf .page {
+    box-shadow: none !important;
+    margin: 0 !important;
+    border: none !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+}
+
+.pdf-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 20px;
+    z-index: 999;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn:hover {
+    color: #ccc;
+}
+
+/* Explicitly Fix Name Font Size */
+.header-left h1 {
+    font-size: 32px !important;
+}
+
+/* Ensure other headers scale relative to base font size */
+.section-title h3,
+.left-column h3,
+.right-column h3 {
+    font-size: 1.25em !important;
+}
+
+.job-header span,
+.skills-list li,
+.languages-list li,
+.education-list li {
+    font-size: 1em !important;
+}
+
+/* Alignment Fixes */
+p,
+.summary-text,
+.job-item ul li,
+.section p {
+    text-align: justify;
+    /* Revert to Left Align */
+}
+
+/* Apply Section Spacing */
+.section {
+    margin-bottom: var(--section-spacing) !important;
+}

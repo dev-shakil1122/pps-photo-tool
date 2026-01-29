@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>NOC Document</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="classic.css">
+</head>
+
+<body>
+
+    <div class="pdf-toolbar">
+        <!-- Font Control -->
+        <button class="action-btn" onclick="adjustAppearance('font', 1)" title="Increase Font">A +</button>
+        <button class="action-btn" onclick="adjustAppearance('font', -1)" title="Decrease Font">A -</button>
+
+        <!-- Line Spacing Control -->
+        <button class="action-btn" onclick="adjustAppearance('line', 0.1)" title="Increase Spacing"><i
+                class="fas fa-arrows-alt-v"></i> +</button>
+        <button class="action-btn" onclick="adjustAppearance('line', -0.1)" title="Decrease Spacing"><i
+                class="fas fa-arrows-alt-v"></i> -</button>
+
+        <!-- Top Margin Control -->
+        <button class="action-btn" onclick="adjustAppearance('margin', 10)" title="Increase Top Margin"><i
+                class="fas fa-arrow-up"></i> +</button>
+        <button class="action-btn" onclick="adjustAppearance('margin', -10)" title="Decrease Top Margin"><i
+                class="fas fa-arrow-up"></i> -</button>
+
+        <!-- Letterhead -->
+        <button class="action-btn" onclick="document.getElementById('letterheadUpload').click()">
+            <i class="fas fa-plus"></i> Letterhead
+        </button>
+        <button class="action-btn btn-danger" onclick="removeLetterhead()">
+            <i class="fas fa-trash-alt"></i> Letterhead
+        </button>
+
+        <!-- Multiple Images -->
+        <button class="action-btn" onclick="document.getElementById('imageUpload').click()" title="Add Image">
+            <i class="fas fa-images"></i> Seal/Sign
+        </button>
+        <button class="action-btn btn-danger" onclick="removeSelectedImage()" title="Remove Selected Image">
+            <i class="fas fa-trash"></i> Remove
+        </button>
+
+        <!-- Actions -->
+        <button class="action-btn" onclick="window.print()" title="Print"><i class="fas fa-print"></i></button>
+        <button class="action-btn" onclick="generatePDF()" title="Download PDF"><i class="fas fa-file-pdf"></i></button>
+        <button class="action-btn" onclick="history.back()" title="Back"><i class="fas fa-arrow-left"></i></button>
+
+        <input type="file" id="letterheadUpload" accept="image/*" style="display: none;"
+            onchange="handleLetterhead(this)">
+        <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+    </div>
+
+    <div class="page" id="nocPage">
+
+        <div class="header-section">
+            <div class="date-line" id="dateDisplay">
+                التاريخ: <span id="dateVal"></span>
+            </div>
+
+            <div class="recipient" contenteditable="true">
+                السادة / وزارة التنمية الادارية والعمل والشؤون الاجتماعية المحترمين<br>
+                دولة قطر،
+            </div>
+        </div>
+
+        <div class="subject" contenteditable="true">
+            الموضوع: شهادة عدم ممانعة من نقل كفالة
+        </div>
+
+        <div class="content">
+            <p contenteditable="true" style="margin-bottom: 15px;">
+                تحية طيبة وبعد،،،
+            </p>
+            <p contenteditable="true">
+                نحيطكم علماً بأننا شركة <strong id="presentCompany"></strong>، رقم قيد المنشأة (<span
+                    id="presentEstid"></span>)، ليس لدينا مانع من نقل كفالة الموظف المذكور أدناه:
+            </p>
+
+            <table class="details-table">
+                <tr>
+                    <td class="col-label">الاسم</td>
+                    <td class="col-colon">:</td>
+                    <td class="col-value"><strong id="employeeName"></strong></td>
+                </tr>
+                <tr>
+                    <td class="col-label">الجنسية</td>
+                    <td class="col-colon">:</td>
+                    <td class="col-value"><span id="nationality"></span></td>
+                </tr>
+                <tr>
+                    <td class="col-label">رقم البطاقة الشخصية</td>
+                    <td class="col-colon">:</td>
+                    <td class="col-value"><span id="qid"></span></td>
+                </tr>
+                <tr>
+                    <td class="col-label">رقم جواز السفر</td>
+                    <td class="col-colon">:</td>
+                    <td class="col-value"><span id="passport"></span></td>
+                </tr>
+            </table>
+
+            <p contenteditable="true">
+                وذلك للعمل لدى السيد/ السادة شركات <strong id="newCompany"></strong>، رقم قيد المنشأة (<span
+                    id="newEstid"></span>).
+            </p>
+
+            <p contenteditable="true">
+                وهذه شهادة منا بذلك دون أدنى مسئولية علينا تجاه الغير اعتباراً من تاريخ نقل الكفالة.
+            </p>
+
+            <p style="text-align: right; margin-top: 30px;" contenteditable="true">
+                وتفضلوا بقبول فائق الاحترام والتقدير،،،
+            </p>
+        </div>
+
+        <div class="signature-block">
+            <div class="signature-section">
+                <p contenteditable="true">المخوّل بالتوقيع</p>
+                <p contenteditable="true" style="margin-top: 5px;"><strong id="footerCompany"></strong></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let config = {
+            fontSize: 18,
+            lineHeight: 1.6,
+            marginTop: 0
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Global click listener for deselecting images
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.floating-image') && !e.target.classList.contains('action-btn')) {
+                    setActiveImage(null);
+                }
+            });
+
+            // Load Data
+            const data = JSON.parse(localStorage.getItem('nocData'));
+            if (data) {
+                document.getElementById('dateVal').innerText = data.date || '';
+
+                document.getElementById('presentCompany').innerText = data.present_company || '......';
+                document.getElementById('presentEstid').innerText = data.present_estid || '......';
+
+                document.getElementById('employeeName').innerText = data.employee_name || '......';
+                document.getElementById('nationality').innerText = data.nationality || '......';
+                document.getElementById('qid').innerText = data.qid || '......';
+                document.getElementById('passport').innerText = data.passport || '......';
+
+                document.getElementById('newCompany').innerText = data.new_company || '......';
+                document.getElementById('newEstid').innerText = data.new_estid || '......';
+
+                // Ensure the company name element is meaningful
+                const companyName = data.present_company && data.present_company.trim() !== '' ? data.present_company : '(Company Name - اسم الشركة)';
+                document.getElementById('footerCompany').innerText = companyName;
+            }
+
+            // Load Letterhead
+            const savedLetterhead = localStorage.getItem('nocLetterhead');
+            if (savedLetterhead) {
+                applyLetterhead(savedLetterhead);
+            }
+
+            // Load Images
+            const savedImages = JSON.parse(localStorage.getItem('nocImages'));
+            if (savedImages && Array.isArray(savedImages)) {
+                savedImages.forEach(img => {
+                    addImageElement(img.id, img.src, img.x, img.y, img.w, img.h);
+                });
+            }
+        });
+
+        // Multi-Image Logic
+        let activeImageId = null;
+
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const id = Date.now().toString();
+                    addImageElement(id, e.target.result);
+                    saveImagesState();
+                };
+                reader.readAsDataURL(input.files[0]);
+                input.value = '';
+            }
+        }
+
+        function addImageElement(id, src, x = 50, y = 500, w = 150, h = 150) {
+            const container = document.createElement('div');
+            container.className = 'floating-image';
+            container.id = id;
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            container.style.width = w + 'px';
+            container.style.height = h + 'px';
+
+            container.addEventListener('mousedown', function (e) {
+                if (e.target.classList.contains('resize-handle')) return;
+                setActiveImage(id);
+            });
+
+            const img = document.createElement('img');
+            img.src = src;
+            container.appendChild(img);
+
+            ['se'].forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `resize-handle handle-${pos}`;
+                container.appendChild(handle);
+            });
+
+            document.getElementById('nocPage').appendChild(container); // Append to nocPage
+            makeDraggable(container);
+            makeResizable(container);
+            setActiveImage(id);
+        }
+
+        function setActiveImage(id) {
+            document.querySelectorAll('.floating-image').forEach(el => el.classList.remove('active'));
+            activeImageId = id;
+            if (id) document.getElementById(id)?.classList.add('active');
+        }
+
+        function removeSelectedImage() {
+            if (activeImageId) {
+                document.getElementById(activeImageId)?.remove();
+                activeImageId = null;
+                saveImagesState();
+            }
+        }
+
+        function saveImagesState() {
+            const images = [];
+            document.querySelectorAll('.floating-image').forEach(el => {
+                images.push({
+                    id: el.id,
+                    src: el.querySelector('img').src,
+                    x: parseInt(el.style.left),
+                    y: parseInt(el.style.top),
+                    w: parseInt(el.style.width),
+                    h: parseInt(el.style.height)
+                });
+            });
+            localStorage.setItem('nocImages', JSON.stringify(images));
+        }
+
+        function makeDraggable(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elmnt.addEventListener('mousedown', dragMouseDown);
+            elmnt.addEventListener('touchstart', dragMouseDown, { passive: false });
+
+            function dragMouseDown(e) {
+                if (e.target.classList.contains('resize-handle')) return;
+                // e.preventDefault(); // Prevent scrolling on touch? Maybe only if dragging
+
+                pos3 = e.clientX || e.touches[0].clientX;
+                pos4 = e.clientY || e.touches[0].clientY;
+
+                document.addEventListener('mouseup', closeDragElement);
+                document.addEventListener('touchend', closeDragElement);
+                document.addEventListener('mousemove', elementDrag);
+                document.addEventListener('touchmove', elementDrag, { passive: false });
+            }
+
+            function elementDrag(e) {
+                e.preventDefault(); // Stop scrolling
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                pos1 = pos3 - clientX;
+                pos2 = pos4 - clientY;
+                pos3 = clientX;
+                pos4 = clientY;
+
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.removeEventListener('mouseup', closeDragElement);
+                document.removeEventListener('touchend', closeDragElement);
+                document.removeEventListener('mousemove', elementDrag);
+                document.removeEventListener('touchmove', elementDrag);
+                saveImagesState();
+            }
+        }
+
+        function makeResizable(elmnt) {
+            const handles = elmnt.querySelectorAll('.resize-handle');
+            handles.forEach(handle => {
+                handle.addEventListener('mousedown', initResize);
+                handle.addEventListener('touchstart', initResize, { passive: false });
+
+                function initResize(e) {
+                    if (e.type === 'mousedown') {
+                        e.preventDefault(); e.stopPropagation();
+                    }
+
+                    const startX = e.clientX || e.touches[0].clientX;
+                    const startWidth = parseInt(document.defaultView.getComputedStyle(elmnt).width, 10);
+                    const startHeight = parseInt(document.defaultView.getComputedStyle(elmnt).height, 10);
+                    const aspectRatio = startWidth / startHeight;
+
+                    function doDrag(e) {
+                        if (e.type === 'touchmove') e.preventDefault();
+                        const clientX = e.clientX || e.touches[0].clientX;
+                        const dx = clientX - startX;
+
+                        const newWidth = startWidth + dx;
+                        if (newWidth > 20) {
+                            elmnt.style.width = newWidth + 'px';
+                            elmnt.style.height = (newWidth / aspectRatio) + 'px';
+                        }
+                    }
+
+                    function stopDrag() {
+                        document.removeEventListener('mousemove', doDrag);
+                        document.removeEventListener('touchmove', doDrag);
+                        document.removeEventListener('mouseup', stopDrag);
+                        document.removeEventListener('touchend', stopDrag);
+                        saveImagesState();
+                    }
+
+                    document.addEventListener('mousemove', doDrag);
+                    document.addEventListener('touchmove', doDrag, { passive: false });
+                    document.addEventListener('mouseup', stopDrag);
+                    document.addEventListener('touchend', stopDrag);
+                }
+            });
+        }
+
+        // Appearance Controls
+        function adjustAppearance(type, value) {
+            const root = document.documentElement;
+
+            if (type === 'font') {
+                config.fontSize += value;
+                if (config.fontSize < 12) config.fontSize = 12;
+                if (config.fontSize > 24) config.fontSize = 24;
+                root.style.setProperty('--font-size', config.fontSize + 'px');
+            }
+            else if (type === 'line') {
+                config.lineHeight += value;
+                // floating point correction
+                config.lineHeight = Math.round(config.lineHeight * 10) / 10;
+                if (config.lineHeight < 1.0) config.lineHeight = 1.0;
+                if (config.lineHeight > 3.0) config.lineHeight = 3.0;
+                root.style.setProperty('--line-height', config.lineHeight);
+            }
+            else if (type === 'margin') {
+                config.marginTop += value;
+                // Limit top margin adjustment
+                if (config.marginTop < 0) config.marginTop = 0;
+                if (config.marginTop > 300) config.marginTop = 300;
+                root.style.setProperty('--margin-top-adjustment', config.marginTop + 'px');
+            }
+        }
+
+        // Letterhead Logic
+        function handleLetterhead(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    applyLetterhead(e.target.result);
+                    localStorage.setItem('nocLetterhead', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function applyLetterhead(dataUrl) {
+            const page = document.getElementById('nocPage');
+            page.style.backgroundImage = "url('" + dataUrl + "')";
+            // Ensure background size covers the whole page
+            page.style.backgroundSize = "100% 100%";
+        }
+
+        function removeLetterhead() {
+            const page = document.getElementById('nocPage');
+            page.style.backgroundImage = 'none';
+            localStorage.removeItem('nocLetterhead');
+        }
+
+        // PDF Generation
+        function generatePDF() {
+            // Hide controls
+            const controls = document.querySelectorAll('.pdf-toolbar, .resize-handle, .action-btn');
+            const displayStates = [];
+            controls.forEach(c => {
+                displayStates.push({ el: c, val: c.style.display });
+                c.style.display = 'none';
+            });
+
+            const element = document.getElementById('nocPage');
+            document.body.classList.add('generating-pdf');
+
+            // Save state
+            const originalHeight = element.style.height;
+            const originalOverflow = element.style.overflow;
+            const originalTransform = element.style.transform;
+            const originalMargin = element.style.margin;
+
+            // Enforce A4 constraints
+            element.style.transform = 'none';
+            element.style.margin = '0';
+            element.style.setProperty('min-height', '0', 'important');
+            element.style.setProperty('height', '290mm', 'important'); // Safe buffer
+            element.style.overflow = 'hidden';
+
+            window.scrollTo(0, 0);
+
+            const opt = {
+                margin: 0,
+                filename: 'NOC_Document.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('generating-pdf');
+
+                // Restore controls
+                controls.forEach((c, i) => {
+                    c.style.display = displayStates[i].val;
+                });
+
+                // Restore state
+                element.style.height = originalHeight;
+                element.style.overflow = originalOverflow;
+                element.style.margin = originalMargin;
+                element.style.transform = originalTransform;
+
+                fitToScreen();
+            });
+        }
+
+        // Mobile Scaling Logic
+        function fitToScreen() {
+            const page = document.getElementById('nocPage');
+            const pageWidth = 794; // A4 px
+            const windowWidth = window.innerWidth;
+
+            if (windowWidth < pageWidth) {
+                const scale = (windowWidth - 20) / pageWidth;
+                page.style.transform = `scale(${scale})`;
+                page.style.transformOrigin = 'top center';
+
+                // Adjust height to avoid whitespace
+                const heightDiff = page.offsetHeight * (1 - scale);
+                page.style.marginBottom = `-${heightDiff}px`;
+                page.style.marginTop = '10px';
+            } else {
+                page.style.transform = '';
+                page.style.marginBottom = '';
+                page.style.marginTop = '';
+            }
+        }
+
+        window.addEventListener('resize', fitToScreen);
+        // Call initial fit inside DOMContentLoaded
+
+    </script>
+</body>
+
+</html>

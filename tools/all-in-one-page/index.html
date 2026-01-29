@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>All-in-One Page Builder</title>
+    <style>
+        :root {
+            --primary-color: #2D3A4B;
+            --accent-color: #3B82F6;
+            --bg-color: #F3F4F6;
+            --danger-color: #EF4444;
+            --success-color: #10B981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .controls {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-print {
+            background-color: var(--accent-color);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* A4 Canvas */
+        .page-container {
+            width: 210mm;
+            height: 297mm;
+            /* Exact A4 height */
+            background: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transform-origin: top center;
+            margin: 0 auto;
+        }
+
+        /* Responsive scaling */
+        @media screen and (max-width: 850px) {
+            .page-container {
+                transform: scale(0.9);
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .page-container {
+                transform: scale(0.6);
+            }
+        }
+
+        /* Draggable Items */
+        .draggable-item {
+            position: absolute;
+            cursor: move;
+            border: 2px solid transparent;
+            touch-action: none;
+        }
+
+        .draggable-item:hover,
+        .draggable-item.active {
+            border: 2px solid var(--accent-color);
+            z-index: 10;
+        }
+
+        .draggable-item img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* Text Item Styles */
+        .text-content {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 100%;
+            /* Relative to container logic if we want, or fixed */
+            font-size: 24px;
+            line-height: 1.2;
+            padding: 5px;
+            overflow: hidden;
+            box-sizing: border-box;
+            color: #000;
+        }
+
+        .move-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(59, 130, 246, 0.2);
+            cursor: move;
+            display: none;
+            z-index: 5;
+        }
+
+        .draggable-item:hover .move-handle,
+        .draggable-item.active .move-handle {
+            display: block;
+        }
+
+        /* Resize Handles */
+        .resize-handle {
+            width: 15px;
+            height: 15px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+            z-index: 20;
+        }
+
+        .draggable-item:hover .resize-handle,
+        .draggable-item.active .resize-handle {
+            display: block;
+        }
+
+        .handle-nw {
+            top: -7px;
+            left: -7px;
+            cursor: nw-resize;
+        }
+
+        .handle-ne {
+            top: -7px;
+            right: -7px;
+            cursor: ne-resize;
+        }
+
+        .handle-sw {
+            bottom: -7px;
+            left: -7px;
+            cursor: sw-resize;
+        }
+
+        .handle-se {
+            bottom: -7px;
+            right: -7px;
+            cursor: se-resize;
+        }
+
+        /* Controls on Image */
+        .item-controls {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            display: none;
+            gap: 5px;
+            z-index: 20;
+        }
+
+        .draggable-item.active .item-controls {
+            display: flex;
+        }
+
+        .control-btn {
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete {
+            background: var(--danger-color);
+        }
+
+        .btn-restore {
+            background: var(--success-color);
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+
+            html,
+            body {
+                width: 210mm;
+                height: 297mm;
+                background: white;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden;
+            }
+
+            .controls {
+                display: none !important;
+            }
+
+            .page-container {
+                box-shadow: none;
+                transform: none !important;
+                /* Reset scale */
+                margin: 0 !important;
+                border: none !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            .draggable-item {
+                border: none !important;
+            }
+
+            .text-content {
+                border: none !important;
+                outline: none !important;
+            }
+
+            .resize-handle,
+            .item-controls,
+            .move-handle {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls">
+        <label class="file-label">
+            <input type="file" id="imageInput" multiple accept="image/*">
+            <span>+ Add Images</span>
+        </label>
+        <button class="btn" id="addTextBtn">+ Add Text</button>
+        <button class="btn btn-print" onclick="window.print()">Print / Save PDF</button>
+        <button class="btn" id="clearBtn" style="background-color: var(--danger-color);">Clear Page</button>
+    </div>
+
+    <div class="page-container" id="canvas">
+        <!-- Images will be added here -->
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const addTextBtn = document.getElementById('addTextBtn');
+        const canvas = document.getElementById('canvas');
+        const clearBtn = document.getElementById('clearBtn');
+        let activeItem = null;
+        let isDragging = false;
+        let isResizing = false;
+        let currentHandle = null;
+
+        let startX, startY, initialLeft, initialTop, initialWidth, initialHeight;
+
+        // --- Add Text ---
+        addTextBtn.addEventListener('click', () => {
+            createTextElement();
+        });
+
+        // --- Image Loading ---
+        imageInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (!files.length) return;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    createImageElement(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+            imageInput.value = '';
+        });
+
+        // Clear Canvas Logic
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all images?')) {
+                canvas.innerHTML = '';
+            }
+        });
+
+        function createImageElement(src) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'draggable-item';
+
+            // Image
+            const img = document.createElement('img');
+            img.src = src;
+            img.onload = () => {
+                // Set initial size
+                const aspect = img.naturalWidth / img.naturalHeight;
+                const setWidth = 200;
+                const setHeight = setWidth / aspect;
+
+                wrapper.style.width = `${setWidth}px`;
+                wrapper.style.height = `${setHeight}px`;
+                wrapper.style.left = '20px';
+                wrapper.style.top = '20px';
+
+                // Store natural dimensions
+                wrapper.dataset.naturalWidth = img.naturalWidth;
+                wrapper.dataset.naturalHeight = img.naturalHeight;
+            };
+
+            wrapper.appendChild(img);
+
+            // Handles
+            ['nw', 'ne', 'sw', 'se'].forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `resize-handle handle-${pos}`;
+                handle.dataset.handle = pos;
+                wrapper.appendChild(handle);
+            });
+
+            // Item Controls
+            const controls = document.createElement('div');
+            controls.className = 'item-controls';
+
+            // Restore Button
+            const restoreBtn = document.createElement('button');
+            restoreBtn.className = 'control-btn btn-restore';
+            restoreBtn.innerText = 'Restore';
+            restoreBtn.title = 'Restore original size (fit to page)';
+            restoreBtn.onclick = (e) => {
+                e.stopPropagation();
+                restoreItemSize(wrapper);
+            };
+            controls.appendChild(restoreBtn);
+
+            // Ctrl + Click to Restore
+            wrapper.addEventListener('click', (e) => {
+                if (e.ctrlKey) {
+                    restoreItemSize(wrapper);
+                }
+            });
+
+            // Delete Button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'control-btn btn-delete';
+            delBtn.innerText = 'Remove';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                wrapper.remove();
+            };
+            controls.appendChild(delBtn);
+
+            wrapper.appendChild(controls);
+
+            // Listeners
+            wrapper.addEventListener('mousedown', startDrag);
+            wrapper.addEventListener('touchstart', startDrag, { passive: false });
+            wrapper.querySelectorAll('.resize-handle').forEach(handle => {
+                handle.addEventListener('mousedown', startResize);
+                handle.addEventListener('touchstart', startResize, { passive: false });
+            });
+
+            canvas.appendChild(wrapper);
+            setActive(wrapper);
+        }
+
+        function createTextElement() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'draggable-item';
+            wrapper.style.width = '200px';
+            wrapper.style.height = '100px';
+            wrapper.style.left = '50px';
+            wrapper.style.top = '50px';
+
+            // Move Handle
+            const moveHandle = document.createElement('div');
+            moveHandle.className = 'move-handle';
+            wrapper.appendChild(moveHandle);
+
+            // Text Area
+            const textarea = document.createElement('textarea');
+            textarea.className = 'text-content';
+            textarea.placeholder = 'Type here...';
+            wrapper.appendChild(textarea);
+
+            // Handles
+            ['nw', 'ne', 'sw', 'se'].forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `resize-handle handle-${pos}`;
+                handle.dataset.handle = pos;
+                wrapper.appendChild(handle);
+            });
+
+            // Item Controls (Delete only)
+            const controls = document.createElement('div');
+            controls.className = 'item-controls';
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'control-btn btn-delete';
+            delBtn.innerText = 'Remove';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                wrapper.remove();
+            };
+            controls.appendChild(delBtn);
+            wrapper.appendChild(controls);
+
+            // Listeners
+            wrapper.addEventListener('mousedown', startDrag);
+            wrapper.addEventListener('touchstart', startDrag, { passive: false });
+
+            wrapper.querySelectorAll('.resize-handle').forEach(handle => {
+                handle.addEventListener('mousedown', startResize);
+                handle.addEventListener('touchstart', startResize, { passive: false });
+            });
+
+            canvas.appendChild(wrapper);
+            setActive(wrapper);
+            textarea.focus();
+        }
+
+        // --- Selection Logic ---
+        function setActive(item) {
+            if (activeItem) activeItem.classList.remove('active');
+            activeItem = item;
+            if (activeItem) activeItem.classList.add('active');
+        }
+
+        document.addEventListener('mousedown', (e) => {
+            if (!e.target.closest('.draggable-item') && !e.target.closest('.controls')) {
+                if (activeItem) activeItem.classList.remove('active');
+                activeItem = null;
+            }
+        });
+
+        // --- Drag Logic ---
+        function startDrag(e) {
+            // Ignore if touching a resize handle or control button
+            if (e.target.closest('.resize-handle') || e.target.closest('.control-btn')) return;
+
+            // For text items, only allow drag via the move-handle
+            if (e.target.classList.contains('text-content')) {
+                setActive(e.currentTarget);
+                return; // Allow default behavior (focus/type)
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const item = e.currentTarget;
+            setActive(item);
+            isDragging = true;
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            startX = clientX;
+            startY = clientY;
+            initialLeft = item.offsetLeft;
+            initialTop = item.offsetTop;
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!isDragging || !activeItem) return;
+            e.preventDefault();
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            activeItem.style.left = `${initialLeft + dx}px`;
+            activeItem.style.top = `${initialTop + dy}px`;
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+
+        // --- Resize Logic ---
+        function startResize(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            isResizing = true;
+            currentHandle = e.target.dataset.handle;
+            const item = e.target.closest('.draggable-item');
+            setActive(item);
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            startX = clientX;
+            startY = clientY;
+            initialWidth = item.offsetWidth;
+            initialHeight = item.offsetHeight;
+            initialLeft = item.offsetLeft;
+            initialTop = item.offsetTop;
+
+            document.addEventListener('mousemove', onResize);
+            document.addEventListener('touchmove', onResize, { passive: false });
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchend', stopResize);
+        }
+
+        function onResize(e) {
+            if (!isResizing || !activeItem) return;
+            e.preventDefault();
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            const minSize = 20;
+            const aspect = initialWidth / initialHeight;
+            const maintainRatio = e.ctrlKey;
+
+            let newWidth = initialWidth;
+            let newHeight = initialHeight;
+            let newLeft = initialLeft;
+            let newTop = initialTop;
+
+            // Calculate candidate dimensions based on handle
+            if (currentHandle.includes('e')) newWidth = initialWidth + dx;
+            if (currentHandle.includes('w')) {
+                newWidth = initialWidth - dx;
+                newLeft = initialLeft + dx;
+            }
+            if (currentHandle.includes('s')) newHeight = initialHeight + dy;
+            if (currentHandle.includes('n')) {
+                newHeight = initialHeight - dy;
+                newTop = initialTop + dy;
+            }
+
+            // Aspect Ratio Enforcement
+            if (maintainRatio) {
+                // For corners, let Width drive Height (arbitrary choice, usually feels natural)
+                // Or if interacting with N/S handles only, let Height drive Width
+
+                if (currentHandle === 'n' || currentHandle === 's') {
+                    // Height drives Width
+                    newWidth = newHeight * aspect;
+                    // If centered resizing is desired, adjust left, but standard is usually no adjustment for side handles unless corner
+                } else {
+                    // Width drives Height (default for corners and E/W)
+                    newHeight = newWidth / aspect;
+
+                    // If we are resizing from North, we need to adjust Top based on the enforced height difference
+                    if (currentHandle.includes('n')) {
+                        newTop = initialTop + (initialHeight - newHeight);
+                    }
+                }
+
+                // If resizing from West, Left is ALREADY adjusted by dx above. 
+                // However, since Width changed strictly by dx, and Height is derived, we are good on Width/Left.
+                // But for North/West corner, both change.
+            }
+
+            // Safety Checks
+            if (newWidth > minSize && newHeight > minSize) {
+                activeItem.style.width = `${newWidth}px`;
+                activeItem.style.height = `${newHeight}px`;
+                if (currentHandle.includes('w')) activeItem.style.left = `${newLeft}px`;
+                if (currentHandle.includes('n')) activeItem.style.top = `${newTop}px`;
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            currentHandle = null;
+            document.removeEventListener('mousemove', onResize);
+            document.removeEventListener('touchmove', onResize);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchend', stopResize);
+        }
+
+        // --- Drop Zone Logic ---
+        canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            canvas.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.5)';
+        });
+
+        canvas.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            canvas.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.1)';
+        });
+
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            canvas.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.1)';
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => createImageElement(event.target.result);
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        // --- Helper: Restore Size ---
+        function restoreItemSize(wrapper) {
+            const pageW = canvas.offsetWidth;
+            let natW = parseInt(wrapper.dataset.naturalWidth);
+            let natH = parseInt(wrapper.dataset.naturalHeight);
+
+            if (!natW || !natH) return;
+
+            // Fit to page width if too large
+            if (natW > pageW) {
+                const ratio = pageW / natW;
+                natW = pageW;
+                natH = natH * ratio;
+            }
+
+            wrapper.style.width = `${natW}px`;
+            wrapper.style.height = `${natH}px`;
+
+            // Keep within bounds if possible
+            if (parseInt(wrapper.style.left) < 0) wrapper.style.left = '0px';
+            if (parseInt(wrapper.style.top) < 0) wrapper.style.top = '0px';
+        }
+    </script>
+</body>
+
+</html>

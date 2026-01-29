@@ -1,0 +1,289 @@
+:root {
+    --page-padding: 20mm;
+    --font-size: 18px;
+    --line-height: 1.5;
+    --margin-top-adjustment: 0px;
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', 'Arial', serif;
+    background: #555;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    margin: 0;
+    padding-top: 70px;
+}
+
+
+
+.page {
+    width: 210mm;
+    height: 297mm;
+    /* Strict Height */
+    padding: var(--page-padding);
+    padding-bottom: 10mm;
+    /* Reduced bottom padding */
+    padding-top: calc(var(--page-padding) + var(--margin-top-adjustment));
+    background: white;
+    box-sizing: border-box;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: black;
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent overflow */
+
+    /* Letterhead Background */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+}
+
+[contenteditable="true"]:focus {
+    outline: 1px dashed #ccc;
+}
+
+/* Layout */
+.header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Start = Right in RTL */
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.date-line {
+    font-weight: bold;
+    direction: ltr;
+    text-align: right;
+    padding-top: 20mm
+}
+
+.recipient {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: right;
+}
+
+.subject {
+    text-align: center;
+    font-weight: bold;
+    text-decoration: underline;
+    font-size: 1.2em;
+    margin: 15px 0 25px 0;
+}
+
+.content {
+    text-align: justify;
+    margin-bottom: 10px;
+    margin-bottom: 10px;
+    /* flex: 1; Removed to prevent large gap */
+}
+
+/* Compact Table */
+.details-table {
+    width: 100%;
+    margin: 10px 0;
+    border-collapse: collapse;
+}
+
+.details-table td {
+    padding: 2px 5px;
+    /* Very compact */
+    vertical-align: middle;
+}
+
+.col-label {
+    font-weight: bold;
+    width: 140px;
+    text-align: right;
+}
+
+.col-colon {
+    width: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.col-value {
+    text-align: right;
+}
+
+.signature-block {
+    margin-top: 20px;
+    /* Reduced from 30px */
+    margin-bottom: 10px;
+    /* Reduced from 20px */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-right: 10px;
+}
+
+.signature-section {
+    text-align: center;
+    min-width: 200px;
+}
+
+/* Toolbar Styles */
+.pdf-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #2D3A4B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    min-width: 40px;
+    font-family: sans-serif;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+.btn-danger {
+    color: #ff6b6b;
+    border-color: rgba(255, 107, 107, 0.3);
+}
+
+.btn-danger:hover {
+    background-color: rgba(255, 107, 107, 0.1);
+    border-color: #ff6b6b;
+}
+
+@media print {
+    body {
+        padding: 0;
+        background: white;
+    }
+
+    .pdf-toolbar {
+        display: none;
+    }
+
+    .page {
+        box-shadow: none;
+        margin: 0;
+        /* Force A4 in print */
+        width: 210mm;
+        height: 297mm;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        background-color: white !important;
+        /* Ensure background color is white */
+    }
+
+    .resize-handle,
+    .img-resize-handle {
+        display: none !important;
+    }
+
+    .floating-image {
+        border: none !important;
+    }
+}
+
+/* Draggable Floating Images */
+.floating-image {
+    position: absolute;
+    cursor: move;
+    z-index: 100;
+    display: inline-block;
+    border: 1px dashed transparent;
+}
+
+.floating-image:hover,
+.floating-image.active {
+    border-color: #007bff;
+    z-index: 101;
+}
+
+.floating-image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+.resize-handle {
+    width: 15px;
+    height: 15px;
+    background: #007bff;
+    position: absolute;
+    display: none;
+    z-index: 102;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+
+.floating-image:hover .resize-handle,
+.floating-image.active .resize-handle {
+    display: block;
+}
+
+.handle-se {
+    bottom: -7px;
+    right: -7px;
+    cursor: se-resize;
+}
+
+.handle-sw,
+.handle-ne,
+.handle-nw {
+    display: none !important;
+}
+
+.handle-sw {
+    bottom: -7px;
+    left: -7px;
+    cursor: sw-resize;
+}
+
+.handle-ne {
+    top: -7px;
+    right: -7px;
+    cursor: ne-resize;
+}
+
+.handle-nw {
+    top: -7px;
+    left: -7px;
+    cursor: nw-resize;
+}

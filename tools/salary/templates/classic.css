@@ -1,0 +1,201 @@
+:root {
+    --page-padding: 2.54cm;
+    /* Standard 1 inch */
+    --font-size: 16px;
+    /* 12pt standard approx */
+    --line-height: 1.5;
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+body {
+    font-family: 'Times New Roman', serif;
+    background: #555;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    margin: 0;
+    padding-top: 30px;
+}
+
+.page {
+    width: 210mm;
+    min-width: 210mm;
+    /* Prevent shrinking on mobile */
+    height: 296mm;
+    min-height: 296mm;
+    /* Prevent overflow */
+    padding: var(--page-padding);
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: black;
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    box-sizing: border-box;
+    overflow: hidden;
+    margin-top: 60px;
+    /* Background for Letterhead */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+}
+
+.pdf-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 60px;
+    background-color: #2D3A4B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    flex-wrap: wrap
+}
+
+
+
+.action-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: sans-serif;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+.btn-danger {
+    color: #ff6b6b;
+    border-color: rgba(255, 107, 107, 0.3);
+}
+
+.btn-danger:hover {
+    background: rgba(255, 107, 107, 0.1);
+    border-color: #ff6b6b;
+}
+
+/* Content Styles */
+.date-section {
+    font-weight: bold;
+    margin-bottom: 40px;
+    margin-top: 70px
+}
+
+.recipient-section {
+    font-weight: bold;
+    margin-bottom: 40px;
+    white-space: pre-wrap;
+    /* Preserve line breaks in address */
+}
+
+.salutation {
+    margin-bottom: 20px;
+}
+
+.body-text {
+    text-align: justify;
+    margin-bottom: 20px;
+}
+
+.footer-section {
+    margin-top: 60px;
+}
+
+.company-signature {
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+/* Draggable Floating Images */
+.floating-image {
+    position: absolute;
+    cursor: move;
+    z-index: 100;
+    display: inline-block;
+    border: 1px dashed transparent;
+}
+
+.floating-image:hover,
+.floating-image.active {
+    border-color: #007bff;
+    z-index: 101;
+}
+
+.floating-image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+.resize-handle {
+    width: 15px;
+    height: 15px;
+    background: #007bff;
+    position: absolute;
+    display: none;
+    z-index: 102;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+
+.floating-image:hover .resize-handle,
+.floating-image.active .resize-handle {
+    display: block;
+}
+
+.handle-se {
+    bottom: -7px;
+    right: -7px;
+    cursor: se-resize;
+}
+
+@media print {
+    body {
+        padding: 0;
+        background: white;
+    }
+
+    .pdf-toolbar {
+        display: none;
+    }
+
+    .page {
+        box-shadow: none;
+        margin: 0;
+        width: 210mm;
+        height: 296mm;
+        border: none;
+        overflow: hidden;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .floating-image {
+        border: none !important;
+    }
+
+    .resize-handle,
+    .img-resize-handle {
+        display: none !important;
+    }
+}

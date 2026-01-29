@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Input Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2D3A4B;
+            --secondary-color: #E6E8EB;
+            --text-color: #333333;
+            --white: #FFFFFF;
+            --border-color: #D1D5DB;
+            --focus-ring: #2D3A4B;
+            --danger-color: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F3F4F6;
+            color: var(--text-color);
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        form {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input,
+        textarea,
+        select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* Table Row Item Styles */
+        .item-row {
+            display: grid;
+            grid-template-columns: 3fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #F9FAFB;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .remove-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button[type="submit"] {
+            background-color: #27ae60;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Invoice Data Input</h1>
+        </header>
+
+        <form id="invoiceForm">
+            <!-- Header Details -->
+            <section>
+                <h2>Invoice Details</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Invoice No (INV #)</label>
+                        <input type="text" name="ref_no" placeholder="INV-2026-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Issue Date</label>
+                        <input type="date" name="date" id="date_input">
+                    </div>
+                    <div class="form-group">
+                        <label>Due Period</label>
+                        <select id="due_days" name="due_days">
+                            <option value="">Select Duration...</option>
+                            <option value="0">Immediate</option>
+                            <option value="5">5 Days</option>
+                            <option value="7">7 Days</option>
+                            <option value="10">10 Days</option>
+                            <option value="15">15 Days</option>
+                            <option value="20">20 Days</option>
+                            <option value="25">25 Days</option>
+                            <option value="30">30 Days</option>
+                            <option value="35">35 Days</option>
+                            <option value="40">40 Days</option>
+                            <option value="45">45 Days</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" name="due_date" id="due_date_input">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Attention Details -->
+            <section>
+                <h2>Bill To (Attention)</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="attn_name" placeholder="Mr. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" name="attn_company" placeholder="Client Company">
+                    </div>
+                    <div class="form-group">
+                        <label>PO Box</label>
+                        <input type="text" name="po_box" placeholder="12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="attn_phone" placeholder="+974 1234 5678">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" name="attn_email" placeholder="client@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="location" placeholder="Doha, Qatar">
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Sender Details -->
+            <section>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--secondary-color); margin-bottom: 20px; padding-bottom: 10px;">
+                    <h2 style="border: none; margin: 0; padding: 0;">Bill From</h2>
+                    <button type="button" id="toggleSenderBtn" onclick="toggleSection('senderGrid', 'toggleSenderBtn')"
+                        style="background: none; border: 1px solid #ccc; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px;">Hide</button>
+                </div>
+                <div class="grid" id="senderGrid">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="from_name" placeholder="Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" name="from_company" placeholder="Name/company name">
+                    </div>
+                    <div class="form-group">
+                        <label>PO Box</label>
+                        <input type="text" name="from_po_box" placeholder="12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile</label>
+                        <input type="text" name="from_mobile" placeholder="+123 4567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" name="from_email" placeholder="info@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="from_location" placeholder="Doha, Qatar">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subject Details -->
+            <section>
+                <h2>Invoice Description</h2>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="subject"
+                        placeholder="e.g. Invoice for Electrical Works for the month of january">
+                </div>
+            </section>
+
+
+
+
+
+            <!-- Note (New) -->
+            <section>
+                <h2>Note</h2>
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea name="note" rows="2" placeholder="Thank you for your business."></textarea>
+                </div>
+            </section>
+
+            <!-- Items -->
+            <section>
+                <h2>Items</h2>
+                <div id="itemsContainer">
+                    <!-- JS will populate first row -->
+                </div>
+                <button type="button" class="add-btn" id="addItemBtn">+ Add Item</button>
+            </section>
+
+            <section>
+                <h2>Configuration</h2>
+                <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="show_totals" id="show_totals" checked style="width: auto;">
+                    <label for="show_totals" style="font-weight: bold;">Calculate & Show Totals</label>
+                </div>
+            </section>
+
+            <div style="text-align: center;">
+                <button type="submit">Generate Invoice</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Pre-fill Date
+        const dateInput = document.getElementById('date_input');
+        const dueDateInput = document.getElementById('due_date_input');
+        const dueDaysSelect = document.getElementById('due_days');
+
+        dateInput.valueAsDate = new Date();
+
+        function calculateDueDate() {
+            const startDate = new Date(dateInput.value);
+            const days = parseInt(dueDaysSelect.value);
+
+            if (!isNaN(startDate.getTime()) && !isNaN(days)) {
+                const newDate = new Date(startDate);
+                newDate.setDate(newDate.getDate() + days);
+                dueDateInput.valueAsDate = newDate;
+            } else if (dueDaysSelect.value === 'custom') {
+                // Do nothing, let user edit
+            }
+        }
+
+        dateInput.addEventListener('change', calculateDueDate);
+        dueDaysSelect.addEventListener('change', calculateDueDate);
+
+        // Initial Calc (Optional, wait for user interact)
+        // calculateDueDate(); 
+
+        const itemsContainer = document.getElementById('itemsContainer');
+
+        // Item Template function
+        function createItemRow(index) {
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            div.innerHTML = `
+                <div class="form-group">
+                    <input type="text" name="desc[]" placeholder="Description">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="unit[]" placeholder="Unit">
+                </div>
+                <div class="form-group">
+                    <input name="qty[]" placeholder="Qty">
+                </div>
+                <div class="form-group">
+                    <input type="number" name="rate[]" step="0.01" placeholder="Rate">
+                </div>
+                <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+            `;
+            return div;
+        }
+
+        // Add initial row
+        itemsContainer.appendChild(createItemRow(0));
+
+        // Add Item Handler
+        document.getElementById('addItemBtn').addEventListener('click', () => {
+            itemsContainer.appendChild(createItemRow());
+        });
+
+        // Form Submit
+        document.getElementById('invoiceForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerText = 'Generating...';
+
+            const formData = new FormData(this);
+            const invoiceData = {
+                ref_no: formData.get('ref_no'),
+                date: formData.get('date'),
+                due_date: formData.get('due_date'),
+                attn: {
+                    name: formData.get('attn_name'),
+                    company: formData.get('attn_company'),
+                    po_box: formData.get('po_box'),
+                    email: formData.get('attn_email'),
+                    phone: formData.get('attn_phone'),
+                    location: formData.get('location')
+                },
+                from: {
+                    name: formData.get('from_name'),
+                    company: formData.get('from_company'),
+                    po_box: formData.get('from_po_box'),
+                    mobile: formData.get('from_mobile'),
+                    email: formData.get('from_email'),
+                    location: formData.get('from_location')
+                },
+                subject: formData.get('subject'),
+                note: formData.get('note'),
+                items: [],
+                show_totals: formData.get('show_totals') === 'on',
+                letterhead: null
+            };
+
+            // Gather Items
+            const descs = formData.getAll('desc[]');
+            const units = formData.getAll('unit[]');
+            const qtys = formData.getAll('qty[]');
+            const rates = formData.getAll('rate[]');
+
+            const items = [];
+            for (let i = 0; i < descs.length; i++) {
+                if (descs[i].trim() !== '') {
+                    items.push({
+                        desc: descs[i],
+                        unit: units[i],
+                        qty: qtys[i],
+                        rate: parseFloat(rates[i]) || 0
+                    });
+                }
+            }
+
+            invoiceData.items = items;
+
+            invoiceData.items = items;
+
+            const saveAndRedirect = (data) => {
+                localStorage.setItem('invoiceData', JSON.stringify(data));
+                window.location.href = 'templates/classic.html';
+            };
+
+            saveAndRedirect(invoiceData);
+        });
+
+        // Toggle Section Function
+        function toggleSection(elementId, btnId) {
+            const el = document.getElementById(elementId);
+            const btn = document.getElementById(btnId);
+            if (el.style.display === 'none') {
+                el.style.display = 'grid';
+                btn.innerText = 'Hide';
+            } else {
+                el.style.display = 'none';
+                btn.innerText = 'Show';
+            }
+        }
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select CV Template</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F3F4F6;
+            margin: 0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2D3A4B;
+            margin-bottom: 40px;
+        }
+
+        .templates-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            /* More space between */
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .template-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center content */
+            width: 300px;
+            /* Fixed width to ensure side-by-side */
+            text-align: center;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            border-color: #2D3A4B;
+        }
+
+        .preview-box {
+            width: 250px;
+            height: 250px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: top;
+            font-size: 14px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-box::after {
+            content: 'Preview';
+            position: absolute;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        /* Simulating Previews with Colors */
+        .p-1 {
+            background-image: url('../../assets/template1-preview.png');
+            background-size: cover;
+            background-position: top center;
+        }
+
+        /* Classic */
+        .p-2 {
+            background-image: url('../../assets/template2-preview.png');
+            background-size: cover;
+            background-position: top center;
+        }
+
+        /* Minimalist */
+        .p-3 {
+            background: linear-gradient(to left, #e0e0e0 30%, #fff 30%);
+        }
+
+        /* Executive */
+        .p-4 {
+            background: linear-gradient(135deg, #FF6B6B 0%, #fff 40%);
+        }
+
+        /* Creative */
+        .p-5 {
+            background: #fffcf5;
+            font-family: serif;
+        }
+
+        /* Academic */
+
+        h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Choose Your CV Design</h1>
+
+    <div class="templates-grid">
+        <!-- Template 1 -->
+        <div class="template-card" onclick="selectTemplate('modern')">
+            <div class="preview-box p-1"></div>
+            <h3>Modern Blue</h3>
+            <p>Professional, sidebar layout</p>
+        </div>
+        <!-- Template 2 -->
+        <div class="template-card" onclick="selectTemplate('classic')">
+            <div class="preview-box p-2"></div>
+            <h3>Classic</h3>
+            <p>Clean, right sidebar layout</p>
+        </div>
+    </div>
+
+    <script>
+        function selectTemplate(templateId) {
+            localStorage.setItem('selectedTemplate', templateId);
+            window.location.href = 'input.html';
+        }
+    </script>
+</body>
+
+</html>

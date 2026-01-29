@@ -1,0 +1,30 @@
+{
+    "contact": {
+        "name": "",
+        "phone": "",
+        "email": ""
+    },
+    "personal": {
+        "qid": "",
+        "qid_exp": "",
+        "dob": "",
+        "passport_no": "",
+        "passport_exp": ""
+    },
+    "job_title": "",
+    "total_years_experience": "",
+    "jobs": [
+        {
+            "job_title": "",
+            "company": "",
+            "location": "",
+            "start_year": "",
+            "end_year": ""
+        }
+    ],
+    "ai_content": {
+        "summary": "",
+        "job_bullets": [],
+        "skills": []
+    }
+}

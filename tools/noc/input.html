@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOC Input Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Using same styles as other inputs for consistency -->
+    <style>
+        :root {
+            --primary-color: #2D3A4B;
+            --secondary-color: #E6E8EB;
+            --text-color: #333333;
+            --white: #FFFFFF;
+            --border-color: #D1D5DB;
+            --focus-ring: #2D3A4B;
+            --danger-color: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F3F4F6;
+            color: var(--text-color);
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        form {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 30px;
+        }
+
+        section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--focus-ring);
+            box-shadow: 0 0 0 3px rgba(45, 58, 75, 0.1);
+        }
+
+        button[type="submit"] {
+            background-color: #27ae60;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #219150;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>NOC Request Details</h1>
+        </header>
+
+        <form id="nocForm">
+            <!-- Date Section -->
+            <section>
+                <h2>Date Details</h2>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" id="date_input">
+                </div>
+            </section>
+
+            <!-- Present Company Details -->
+            <section>
+                <h2>Present Company Details</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Present Company Name (Arabic/English)</label>
+                        <input type="text" name="present_company" placeholder="e.g. Al-Futtaim / الفطيم">
+                    </div>
+                    <div class="form-group">
+                        <label>Company ESTID</label>
+                        <input type="text" name="present_estid" placeholder="Establishment ID">
+                    </div>
+                    <div class="form-group">
+                        <label>Authorized Signatory Name</label>
+                        <input type="text" name="signatory_name" placeholder="Name of person signing">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Employee Details -->
+            <section>
+                <h2>Employee Details</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Employee Name</label>
+                        <input type="text" name="employee_name" placeholder="Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Nationality</label>
+                        <input type="text" name="nationality" placeholder="e.g. Indian / هندي">
+                    </div>
+                    <div class="form-group">
+                        <label>QID Number</label>
+                        <input type="text" name="qid" placeholder="Qatar ID Number">
+                    </div>
+                    <div class="form-group">
+                        <label>Passport Number</label>
+                        <input type="text" name="passport" placeholder="Passport Number">
+                    </div>
+                </div>
+            </section>
+
+            <!-- New Company Details -->
+            <section>
+                <h2>New Company Details (Transfer To)</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>New Company Name</label>
+                        <input type="text" name="new_company" placeholder="Target Company Name">
+                    </div>
+                    <div class="form-group">
+                        <label>New Company ESTID</label>
+                        <input type="text" name="new_estid" placeholder="Target Establishment ID">
+                    </div>
+                </div>
+            </section>
+
+            <button type="submit">Generate NOC</button>
+        </form>
+    </div>
+
+    <script>
+        // Auto-fill today's date
+        document.getElementById('date_input').valueAsDate = new Date();
+
+        // Form persistence
+        document.addEventListener('DOMContentLoaded', () => {
+            // Persistence Logic
+            const entries = performance.getEntriesByType("navigation");
+            let navigationType = entries.length > 0 ? entries[0].type : "navigate";
+
+            if (navigationType === 'reload') {
+                localStorage.removeItem('nocData');
+            }
+
+            const savedData = JSON.parse(localStorage.getItem('nocData'));
+            if (savedData) {
+                document.querySelector('input[name="date"]').value = savedData.date || '';
+                document.querySelector('input[name="present_company"]').value = savedData.present_company || '';
+                document.querySelector('input[name="present_estid"]').value = savedData.present_estid || '';
+                document.querySelector('input[name="signatory_name"]').value = savedData.signatory_name || '';
+
+                document.querySelector('input[name="employee_name"]').value = savedData.employee_name || '';
+                document.querySelector('input[name="nationality"]').value = savedData.nationality || '';
+                document.querySelector('input[name="qid"]').value = savedData.qid || '';
+                document.querySelector('input[name="passport"]').value = savedData.passport || '';
+
+                document.querySelector('input[name="new_company"]').value = savedData.new_company || '';
+                document.querySelector('input[name="new_estid"]').value = savedData.new_estid || '';
+            }
+        });
+
+        document.getElementById('nocForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            localStorage.setItem('nocData', JSON.stringify(data));
+            window.location.href = 'templates/classic.html';
+        });
+    </script>
+</body>
+
+</html>

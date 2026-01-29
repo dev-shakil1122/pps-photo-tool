@@ -1,0 +1,530 @@
+:root {
+    --primary-color: #000;
+    /* Classic black */
+    --accent-color: #000;
+    --text-color: #000;
+    --border-color: #000;
+    --font-family: 'Roboto', sans-serif;
+    /* Or Times New Roman if preferred */
+    --font-size: 14px;
+    --row-padding: 6px;
+    --pad-top: 80px;
+    --pad-bottom: 0px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #555;
+    /* Viewer background */
+    font-family: var(--font-family);
+    color: var(--text-color);
+}
+
+/* Page Container */
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    margin: 50px auto;
+    padding-top: var(--pad-top);
+    padding-bottom: var(--pad-bottom);
+    padding-left: 15mm;
+    padding-right: 15mm;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    position: relative;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: top center;
+}
+
+.content-wrapper {
+    width: 100%;
+    transform-origin: top left;
+}
+
+/* Header Elements */
+.title-block {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.title-block h1 {
+    font-size: 24px;
+    text-transform: uppercase;
+    text-decoration: underline;
+    margin: 0;
+    font-weight: bold;
+}
+
+.ref-date-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: var(--font-size);
+}
+
+/* Boxed Layout for Attn / From */
+.info-boxes {
+    display: flex;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    font-size: var(--font-size);
+    /* Explicitly use variable */
+}
+
+.box-left,
+.box-right {
+    flex: 1;
+    padding: 10px;
+}
+
+.box-left {
+    border-right: 1px solid var(--border-color);
+}
+
+.box-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-decoration: underline;
+    /* Optional, matching image style often has headings */
+}
+
+/* Editable Areas */
+[contenteditable]:hover {
+    outline: 1px dashed #ccc;
+}
+
+[contenteditable]:focus {
+    outline: 2px solid #007bff;
+    background: #f0f8ff;
+}
+
+/* Controls (Add/Remove) */
+.row-controls,
+.li-controls {
+    display: none;
+    position: absolute;
+    z-index: 10;
+}
+
+*:hover>.row-controls,
+.address-line:hover .row-controls,
+/* Explicit hover for address lines */
+li:hover>.li-controls {
+    display: flex;
+    gap: 2px;
+}
+
+.control-btn {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 12px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+}
+
+.btn-add {
+    background-color: #27ae60;
+}
+
+.btn-rem {
+    background-color: #e74c3c;
+}
+
+/* Subject */
+.subject-block {
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.project-line {
+    font-size: var(--font-size);
+    font-weight: 400;
+}
+
+.intro-text {
+    margin-bottom: 20px;
+    font-size: var(--font-size);
+    text-align: justify;
+    line-height: 1.4;
+}
+
+/* Table */
+table {
+    width: 100%;
+    table-layout: fixed;
+    /* Critical for column resizing */
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: var(--font-size);
+}
+
+th,
+td {
+    border: 1px solid var(--border-color);
+    padding: var(--row-padding) 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background-color: white;
+    /* Clean look */
+    font-weight: bold;
+    text-align: center;
+    position: relative;
+    /* For handle positioning */
+}
+
+.resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+    z-index: 10;
+}
+
+.resize-handle:hover {
+    background-color: rgba(0, 123, 255, 0.5);
+    /* Blue highlight on hover */
+}
+
+/* Don't show handles in print */
+/* Draggable Floating Images */
+.floating-image {
+    position: absolute;
+    cursor: move;
+    z-index: 100;
+    display: inline-block;
+    border: 1px dashed transparent;
+}
+
+.floating-image:hover,
+.floating-image.active {
+    border-color: #007bff;
+    z-index: 101;
+}
+
+.floating-image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+.img-resize-handle {
+    width: 15px;
+    height: 15px;
+    background: #007bff;
+    position: absolute;
+    display: none;
+    z-index: 102;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+
+.floating-image:hover .img-resize-handle,
+.floating-image.active .img-resize-handle {
+    display: block;
+}
+
+.handle-se {
+    bottom: -7px;
+    right: -7px;
+    cursor: se-resize;
+}
+
+.handle-sw,
+.handle-ne,
+.handle-nw {
+    display: none !important;
+}
+
+.handle-sw {
+    bottom: -7px;
+    left: -7px;
+    cursor: sw-resize;
+}
+
+.handle-ne {
+    top: -7px;
+    right: -7px;
+    cursor: ne-resize;
+}
+
+.handle-nw {
+    top: -7px;
+    left: -7px;
+    cursor: nw-resize;
+}
+
+
+
+.col-sn {
+    width: 40px;
+    text-align: center;
+}
+
+.col-unit {
+    width: 60px;
+    text-align: center;
+}
+
+.col-qty {
+    width: 100px;
+    text-align: center;
+}
+
+.col-rate {
+    width: 100px;
+    text-align: center;
+}
+
+.col-total {
+    width: 120px;
+    text-align: center;
+}
+
+.rate-cell,
+.total-cell,
+.qty-cell {
+    text-align: left;
+    font-family: arial;
+    /* Better alignment for numbers */
+}
+
+/* Terms */
+.terms-section {
+    margin-top: 20px;
+    page-break-inside: avoid;
+}
+
+.terms-header {
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 10px;
+}
+
+.terms-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: var(--font-size);
+}
+
+.terms-list li {
+    margin-bottom: 5px;
+    position: relative;
+    line-height: 1.4;
+}
+
+/* Closing */
+.closing-text {
+    margin-top: 30px;
+    font-size: var(--font-size);
+    page-break-inside: avoid;
+}
+
+.signature-line {
+    border-top: 1px solid black;
+    width: 200px;
+    margin-top: 60px;
+    /* Space for signature */
+}
+
+/* Toolbar */
+.pdf-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #2D3A4B;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+@media screen and (max-width: 820px) {
+    .pdf-toolbar {
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: auto;
+    }
+
+    .action-btn {
+        margin: 2px;
+    }
+
+    body {
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .page {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+.action-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+/* Print Overrides */
+/* Print Overrides */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+    }
+
+    .pdf-toolbar,
+    .row-controls,
+    .li-controls,
+    .resize-handle,
+    .img-resize-handle {
+        display: none !important;
+    }
+
+    .page {
+        margin: 0 !important;
+        position: relative !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        /* Reset JS Transforms */
+        transform: none !important;
+        transform-origin: top left !important;
+        top: 0 !important;
+        left: 0 !important;
+
+        /* Persist Padding */
+        padding-top: var(--pad-top) !important;
+        padding-bottom: var(--pad-bottom) !important;
+        padding-left: 15mm !important;
+        padding-right: 15mm !important;
+
+        background-color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        overflow: hidden !important;
+    }
+
+    /* Force Box Layout */
+    .info-boxes {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    .box-left {
+        flex: 1 !important;
+        border-right: 1px solid var(--border-color) !important;
+    }
+
+    .box-right {
+        flex: 1 !important;
+    }
+
+    /* Ensure table borders print */
+    table,
+    th,
+    td {
+        border-color: var(--border-color) !important;
+    }
+
+    .floating-image {
+        border: none !important;
+    }
+}
+
+/* Generating PDF State */
+.generating-pdf .pdf-toolbar {
+    display: none !important;
+}
+
+.generating-pdf .row-controls {
+    display: none !important;
+}
+
+.generating-pdf .li-controls {
+    display: none !important;
+}
+
+.generating-pdf .resize-handle,
+.generating-pdf .img-resize-handle {
+    display: none !important;
+    /* Fix for resize handles appearing in download */
+}
+
+.generating-pdf .page {
+    margin: 0;
+    box-shadow: none;
+    border: none;
+    min-height: 0 !important;
+    /* Allow shrinking */
+    height: auto !important;
+    /* Capture actual content height */
+    overflow: visible !important;
+}
+
+/* Helpers */
+.no-totals .col-total {
+    display: none;
+}
+
+.no-totals .total-cell {
+    display: none;
+}
+
+.no-totals tfoot {
+    display: none;
+}
+
+.addr-text {
+    outline: none;
+    min-width: 50px;
+    display: block;
+}

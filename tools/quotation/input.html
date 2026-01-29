@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Input Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2D3A4B;
+            --secondary-color: #E6E8EB;
+            --text-color: #333333;
+            --white: #FFFFFF;
+            --border-color: #D1D5DB;
+            --focus-ring: #2D3A4B;
+            --danger-color: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F3F4F6;
+            color: var(--text-color);
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        form {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input,
+        textarea,
+        select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* Table Row Item Styles */
+        .item-row {
+            display: grid;
+            grid-template-columns: 3fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #F9FAFB;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .remove-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button[type="submit"] {
+            background-color: #27ae60;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Quotation Data Input</h1>
+        </header>
+
+        <form id="quoteForm">
+            <!-- Header Details -->
+            <section>
+                <h2>Quotation Details</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Ref No</label>
+                        <input type="text" name="ref_no" placeholder="STCS/2026/01/0025">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" name="date" id="date_input">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Attention Details -->
+            <section>
+                <h2>Attention To</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="attn_name" placeholder="Mr. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" name="attn_company" placeholder="Zmhrvr Trading and contracting">
+                    </div>
+                    <div class="form-group">
+                        <label>PO Box</label>
+                        <input type="text" name="po_box" placeholder="12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Optional)</label>
+                        <input type="text" name="attn_email" placeholder="client@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone (Optional)</label>
+                        <input type="text" name="attn_phone" placeholder="+974 1234 5678">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="location" placeholder="Doha, Qatar">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sender Details (Classic Template) -->
+            <!-- Sender Details (Classic Template) -->
+            <section>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--secondary-color); margin-bottom: 20px; padding-bottom: 10px;">
+                    <h2 style="border: none; margin: 0; padding: 0;">Sender Details</h2>
+                    <button type="button" id="toggleSenderBtn" onclick="toggleSection('senderGrid', 'toggleSenderBtn')"
+                        style="background: none; border: 1px solid #ccc; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px;">Hide</button>
+                </div>
+                <div class="grid" id="senderGrid">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="from_name" placeholder="Sender Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" name="from_company" placeholder="Company Name">
+                    </div>
+                    <div class="form-group">
+                        <label>PO Box</label>
+                        <input type="text" name="from_po_box" placeholder="12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" name="from_email" placeholder="info@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone/Mobile</label>
+                        <input type="text" name="from_mobile" placeholder="+123 4567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="from_location" placeholder="Doha, Qatar">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Project Details (New) -->
+            <section>
+                <h2>Project Details (Optional)</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Project Name</label>
+                        <input type="text" name="project_name" placeholder="e.g. Lusail Stadium">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="project_location" placeholder="e.g. Doha, Qatar">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Letterhead Upload -->
+            <section>
+                <h2>Letterhead (Optional)</h2>
+                <div class="form-group">
+                    <label>Upload Company Letterhead (Image)</label>
+                    <input type="file" id="letterheadInput" accept="image/*">
+                    <small>Upload an image to set as the background. Margins will be adjusted automatically.</small>
+                </div>
+            </section>
+
+            <!-- Quotation Items -->
+            <section>
+                <h2>Items</h2>
+                <div id="itemsContainer">
+                    <!-- JS will populate first row -->
+                </div>
+                <button type="button" class="add-btn" id="addItemBtn">+ Add Item</button>
+            </section>
+
+            <!-- Configuration -->
+            <section>
+                <h2>Configuration</h2>
+                <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="show_totals" id="show_totals" checked style="width: auto;">
+                    <label for="show_totals" style="font-weight: bold;">Calculate & Show Totals</label>
+                </div>
+            </section>
+
+            <!-- Service Category (Replaces AI) -->
+            <section>
+                <h2>Quotation Details & Context</h2>
+                <div class="form-group">
+                    <label>Quotation Type (Select to Auto-Fill Subject & Intro)</label>
+                    <select name="service_category" id="serviceCategory">
+                        <option value="manpower">Manpower Supply</option>
+                        <option value="services">Services (General/Construction)</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Terms Configuration -->
+            <section>
+                <h2>Terms Configuration</h2>
+                <div id="termsConfigContainer">
+                    <!-- Manpower Defaults -->
+                    <div id="manpowerConfig" class="grid">
+                        <div class="form-group">
+                            <label>FAT (Food, Accommodation, Transport)</label>
+                            <select name="term_fat">
+                                <option value="Supplier">Provided by the Supplier</option>
+                                <option value="Client">Provided by the Client</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Working Hours</label>
+                            <select name="term_hours">
+                                <option value="minimum 5 hours per day">5 Hours</option>
+                                <option value="minimum 6 hours per day">6 Hours</option>
+                                <option value="minimum 8 hours per day" selected>8 Hours (Default)</option>
+                                <option value="minimum 9 hours per day">9 Hours</option>
+                                <option value="minimum 10 hours per day">10 Hours</option>
+                                <option value="minimum 12 hours per day">12 Hours</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Overtime</label>
+                            <input type="text" name="term_overtime"
+                                value="Fridays & official holidays at normal hourly rate">
+                        </div>
+                        <div class="form-group">
+                            <label>Invoice Submission</label>
+                            <select name="term_invoice">
+                                <option value="Invoice will be submitted every month" selected>Every Month</option>
+                                <option value="Invoice will be submitted every week">Every Week</option>
+                                <option value="Invoice will be submitted every 15 days">Every 15 days</option>
+                                <option value="Invoice will be submitted every 10 days">Every 10 days</option>
+                                <option value="Invoice will be submitted upon completion">Upon Completion</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Terms</label>
+                            <select name="term_payment_manpower">
+                                <option value="Payment has to be release within 7 days from the invoice submission date"
+                                    selected>07 Days</option>
+                                <option
+                                    value="Payment has to be release within 15 days from the invoice submission date">15
+                                    Days</option>
+                                <option
+                                    value="Payment has to be release within 30 days from the invoice submission date">30
+                                    Days</option>
+                                <option
+                                    value="Payment has to be release within 45 days from the invoice submission date">45
+                                    Days</option>
+                                <option value="Payment has to be release upon invoice submission">Immediate</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobilization</label>
+                            <select name="term_mobilization">
+                                <option value="Immediate after getting LPO">Immediate after LPO</option>
+                                <option value="within 2 days after getting LPO">Within 2 Days</option>
+                                <option value="within 5 days after getting LPO">Within 5 Days</option>
+                                <option value="within 7 days after getting LPO">Within 7 Days</option>
+                                <option value="within 10 days after getting LPO">Within 10 Days</option>
+                                <option value="within 15 days after getting LPO">Within 15 Days</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quotation Validity</label>
+                            <select name="term_validity">
+                                <option value="15 days">15 Days</option>
+                                <option value="30 days" selected>30 Days (Default)</option>
+                                <option value="60 days">60 Days</option>
+                                <option value="90 days">90 Days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Services Defaults -->
+                    <div id="servicesConfig" class="grid" style="display: none;">
+                        <div class="form-group">
+                            <label>Tools & Materials</label>
+                            <select name="term_tools">
+                                <option value="client">Provided by the Client</option>
+                                <option value="Subcontractor">Provided by the Subcontractor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Delivery/Execution</label>
+                            <input type="text" name="term_delivery" value="As per agreed project timeline">
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Terms</label>
+                            <input type="text" name="term_payment_services" value="50% Advance, 50% After completion">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div style="text-align: center;">
+                <button type="submit">Generate Quotation</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Pre-fill Date
+        document.getElementById('date_input').valueAsDate = new Date();
+
+        const itemsContainer = document.getElementById('itemsContainer');
+        const GEMINI_API_KEY = 'AIzaSyDkJv0WSfWqcAGuRW9Ne99wTdJj1yvgYxY'; // Force Clean Key
+
+        console.log("API Key loaded:", GEMINI_API_KEY); // Debug Log
+
+        // Item Template function
+        function createItemRow(index) {
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            div.innerHTML = `
+                <div class="form-group">
+                    <input type="text" name="desc[]" placeholder="Description (e.g. Mason)">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="unit[]" placeholder="Unit (e.g. Hour)">
+                </div>
+                <div class="form-group">
+                    <input name="qty[]" placeholder="Qty">
+                </div>
+                <div class="form-group">
+                    <input type="number" name="rate[]" step="0.01" placeholder="Rate">
+                </div>
+                <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+            `;
+            return div;
+        }
+
+        // Add initial row
+        itemsContainer.appendChild(createItemRow(0));
+
+        // Add Item Handler
+        document.getElementById('addItemBtn').addEventListener('click', () => {
+            itemsContainer.appendChild(createItemRow());
+        });
+
+        // Toggle Terms Config based on Category
+        const categorySelect = document.getElementById('serviceCategory');
+        const manpowerConfig = document.getElementById('manpowerConfig');
+        const servicesConfig = document.getElementById('servicesConfig');
+
+        function updateTermsVisibility() {
+            if (categorySelect.value === 'services') {
+                manpowerConfig.style.display = 'none';
+                servicesConfig.style.display = 'grid';
+            } else {
+                manpowerConfig.style.display = 'grid';
+                servicesConfig.style.display = 'none';
+            }
+        }
+        categorySelect.addEventListener('change', updateTermsVisibility);
+        // Initial call
+        updateTermsVisibility();
+
+        // Form Submit
+        document.getElementById('quoteForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerText = 'Generating...';
+
+            const formData = new FormData(this);
+            const quoteData = {
+                ref_no: formData.get('ref_no'),
+                date: formData.get('date'),
+                attn: {
+                    name: formData.get('attn_name'),
+                    company: formData.get('attn_company'),
+                    po_box: formData.get('po_box'),
+                    email: formData.get('attn_email'),
+                    phone: formData.get('attn_phone'),
+                    location: formData.get('location')
+                },
+                from: {
+                    name: formData.get('from_name'),
+                    company: formData.get('from_company'),
+                    po_box: formData.get('from_po_box'),
+                    mobile: formData.get('from_mobile'),
+                    email: formData.get('from_email'),
+                    location: formData.get('from_location')
+                },
+                service_desc: formData.get('service_description'),
+                items: [],
+                items: [],
+                terms_config: {},
+                show_totals: formData.get('show_totals') === 'on',
+                project: {
+                    name: formData.get('project_name'),
+                    location: formData.get('project_location')
+                },
+                letterhead: null, // Added letterhead property
+                ai_text: {
+                    subject: "",
+                    intro: ""
+                }
+            };
+
+            // Gather Items
+            const descs = formData.getAll('desc[]');
+            const units = formData.getAll('unit[]');
+            const qtys = formData.getAll('qty[]');
+            const rates = formData.getAll('rate[]');
+
+            const items = [];
+            for (let i = 0; i < descs.length; i++) {
+                if (descs[i].trim() !== '') {
+                    items.push({
+                        desc: descs[i],
+                        unit: units[i],
+                        qty: qtys[i], // Allow text mixed with numbers
+                        rate: parseFloat(rates[i]) || 0
+                    });
+                }
+            }
+
+            quoteData.items = items;
+
+            // Gather Terms Config
+            if (formData.get('service_category') === 'services') {
+                quoteData.terms_config = {
+                    tools: formData.get('term_tools'),
+                    delivery: formData.get('term_delivery'),
+                    payment: formData.get('term_payment_services')
+                };
+            } else {
+                quoteData.terms_config = {
+                    fat: formData.get('term_fat'),
+                    hours: formData.get('term_hours'),
+                    overtime: formData.get('term_overtime'),
+                    invoice: formData.get('term_invoice'),
+                    payment: formData.get('term_payment_manpower'),
+                    mobilization: formData.get('term_mobilization'),
+                    validity: formData.get('term_validity')
+                };
+            }
+
+            // Handle Letterhead Reuse or New Upload
+            const letterheadInput = document.getElementById('letterheadInput');
+            const savedData = JSON.parse(localStorage.getItem('quoteData'));
+            // If no new file, keep old letterhead
+            if (!letterheadInput.files[0] && savedData && savedData.letterhead) {
+                quoteData.letterhead = savedData.letterhead;
+            }
+
+            const processData = (dataToSave) => {
+                // Define Presets Logic
+                const quotationPresets = {
+                    manpower: {
+                        subject: "Subject: Quotation for Manpower Supply Services",
+                        intro: `Dear Sir/Madam, <br> It is a pleasure to submit our formal quotation for manpower supply services for your projects. We specialize in providing reliable, highly-skilled personnel tailored to meet the specific demands of your project. We are confident that our team will add immediate value to ${formData.get('attn_company') || 'your company'} and are ready to deploy at your earliest convenience.`
+                    },
+                    services: {
+                        subject: "Subject: Quotation for General Construction Services",
+                        intro: "With reference to your inquiry, we are pleased to submit our professional quotation for the requested services. We ensure high-quality execution strictly adhering to your project specifications."
+                    }
+                };
+                const selectedCategory = formData.get('service_category');
+                const preset = quotationPresets[selectedCategory] || quotationPresets['services'];
+
+                dataToSave.category = selectedCategory;
+
+                dataToSave.ai_text = {
+                    subject: preset.subject,
+                    intro: preset.intro
+                };
+
+                // Save & Redirect
+                localStorage.setItem('quoteData', JSON.stringify(dataToSave));
+
+                const selectedTemplate = localStorage.getItem('selectedQuoteTemplate') || 'modern';
+                window.location.href = `templates/${selectedTemplate}.html`;
+            };
+
+            if (letterheadInput.files && letterheadInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    quoteData.letterhead = e.target.result; // Base64 string
+                    processData(quoteData);
+                };
+                reader.readAsDataURL(letterheadInput.files[0]);
+            } else {
+                processData(quoteData);
+            }
+        });
+
+        // Toggle Section Function
+        function toggleSection(elementId, btnId) {
+            const el = document.getElementById(elementId);
+            const btn = document.getElementById(btnId);
+            if (el.style.display === 'none') {
+                el.style.display = 'grid';
+                btn.innerText = 'Hide';
+            } else {
+                el.style.display = 'none';
+                btn.innerText = 'Show';
+            }
+        }
+
+        // Load Saved Data
+        document.addEventListener('DOMContentLoaded', () => {
+            // Persistence Logic
+            const entries = performance.getEntriesByType("navigation");
+            let navigationType = entries.length > 0 ? entries[0].type : "navigate"; // 'reload', 'back_forward', etc.
+
+            if (navigationType === 'reload') {
+                // Clear data on refresh
+                localStorage.removeItem('quoteData');
+            }
+
+            const savedData = JSON.parse(localStorage.getItem('quoteData'));
+            const container = document.getElementById('senderGrid');
+            const toggleBtn = document.getElementById('toggleSenderBtn');
+            const selectedTemplate = localStorage.getItem('selectedQuoteTemplate') || 'modern';
+
+            if (selectedTemplate === 'modern') {
+                container.style.display = 'none';
+                toggleBtn.innerText = 'Show';
+            } else {
+                container.style.display = 'grid';
+                toggleBtn.innerText = 'Hide';
+            }
+
+            if (savedData) {
+                // Populate Fields
+                document.querySelector('[name="ref_no"]').value = savedData.ref_no || '';
+                document.querySelector('[name="date"]').value = savedData.date || '';
+
+                // Attn
+                if (savedData.attn) {
+                    document.querySelector('[name="attn_name"]').value = savedData.attn.name || '';
+                    document.querySelector('[name="attn_company"]').value = savedData.attn.company || '';
+                    document.querySelector('[name="po_box"]').value = savedData.attn.po_box || '';
+                    document.querySelector('[name="attn_email"]').value = savedData.attn.email || '';
+                    document.querySelector('[name="attn_phone"]').value = savedData.attn.phone || '';
+                    document.querySelector('[name="location"]').value = savedData.attn.location || '';
+                }
+
+                // From
+                if (savedData.from) {
+                    document.querySelector('[name="from_name"]').value = savedData.from.name || '';
+                    document.querySelector('[name="from_company"]').value = savedData.from.company || '';
+                    document.querySelector('[name="from_po_box"]').value = savedData.from.po_box || '';
+                    document.querySelector('[name="from_mobile"]').value = savedData.from.mobile || '';
+                    document.querySelector('[name="from_email"]').value = savedData.from.email || '';
+                    document.querySelector('[name="from_location"]').value = savedData.from.location || '';
+                }
+
+                // Project
+                if (savedData.project) {
+                    document.querySelector('[name="project_name"]').value = savedData.project.name || '';
+                    document.querySelector('[name="project_location"]').value = savedData.project.location || '';
+                }
+
+                // Others
+                if (savedData.terms_config) {
+                    // Populate based on saved category (which determines which fields matter, but we can fill all matches)
+                    // Manpower fields
+                    if (savedData.terms_config.fat) document.querySelector('[name="term_fat"]').value = savedData.terms_config.fat;
+                    if (savedData.terms_config.hours) document.querySelector('[name="term_hours"]').value = savedData.terms_config.hours;
+                    if (savedData.terms_config.overtime) document.querySelector('[name="term_overtime"]').value = savedData.terms_config.overtime;
+                    if (savedData.terms_config.invoice) document.querySelector('[name="term_invoice"]').value = savedData.terms_config.invoice;
+                    if (savedData.terms_config.payment && savedData.category === 'manpower') document.querySelector('[name="term_payment_manpower"]').value = savedData.terms_config.payment;
+                    if (savedData.terms_config.mobilization) document.querySelector('[name="term_mobilization"]').value = savedData.terms_config.mobilization;
+                    if (savedData.terms_config.validity) document.querySelector('[name="term_validity"]').value = savedData.terms_config.validity;
+
+                    // Service fields
+                    if (savedData.terms_config.tools) document.querySelector('[name="term_tools"]').value = savedData.terms_config.tools;
+                    if (savedData.terms_config.delivery) document.querySelector('[name="term_delivery"]').value = savedData.terms_config.delivery;
+                    if (savedData.terms_config.payment && savedData.category === 'services') document.querySelector('[name="term_payment_services"]').value = savedData.terms_config.payment;
+                }
+
+                if (savedData.category) {
+                    document.querySelector('[name="service_category"]').value = savedData.category;
+                    updateTermsVisibility(); // Trigger UI update
+                }
+
+                // Show Totals
+                if (savedData.hasOwnProperty('show_totals')) {
+                    document.querySelector('[name="show_totals"]').checked = savedData.show_totals;
+                }
+
+                // Rebuild Items
+                if (savedData.items && savedData.items.length > 0) {
+                    itemsContainer.innerHTML = ''; // Clear initial empty row
+                    savedData.items.forEach(item => {
+                        const div = createItemRow(); // Need to adapt createItemRow to accept values? Or set them after
+                        // Better to make createItemRow flexible or set values manually
+                        const row = createItemRow();
+                        row.querySelector('[name="desc[]"]').value = item.desc || '';
+                        row.querySelector('[name="unit[]"]').value = item.unit || '';
+                        row.querySelector('[name="qty[]"]').value = item.qty || '';
+                        row.querySelector('[name="rate[]"]').value = item.rate || '';
+                        itemsContainer.appendChild(row);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

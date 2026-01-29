@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Declaration of Voluntary Passport Submission</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-size: 12pt;
+            --line-height: 1.6;
+            --pad-top: 40mm;
+            --pad-bottom: 20mm;
+            --pad-left: 20mm;
+            --pad-right: 20mm;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 40px;
+            color: #000;
+            background: #525659;
+            /* Standard PDF Viewer Gray */
+            line-height: 1.6;
+            font-size: 12pt;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Toolbar */
+        .pdf-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            padding: 0 10px;
+        }
+
+        .action-btn {
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            height: 36px;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-danger {
+            color: #e74c3c;
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+        }
+
+        /* Icon only buttons */
+        .btn-icon {
+            padding: 8px 12px;
+        }
+
+        /* Page */
+        .page {
+            max-width: 210mm;
+            width: 100%;
+            min-height: 297mm;
+            padding-top: var(--pad-top);
+            padding-bottom: var(--pad-bottom);
+            padding-left: var(--pad-left);
+            padding-right: var(--pad-right);
+            margin: 40px auto;
+            background: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            overflow: hidden;
+            /* Ensure letterhead doesn't spill */
+        }
+
+        /* Letterhead Image Layer */
+        #letterhead-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            object-fit: cover;
+            pointer-events: none;
+            display: none;
+            /* Hidden by default until set */
+        }
+
+        .content,
+        h1,
+        .signatures,
+        .floating-image {
+            position: relative;
+            z-index: 1;
+            /* Above letterhead */
+        }
+
+        h1 {
+            text-align: center;
+            text-decoration: underline;
+            font-size: 1.2em;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+        }
+
+        /* Ensure inputs specific to toolbar hidden */
+        input[type="file"] {
+            display: none;
+        }
+
+        .content {
+            margin-bottom: 40px;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+        }
+
+        p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+
+        li {
+            margin-bottom: 15px;
+        }
+
+        .signatures {
+            margin-top: 100px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12pt;
+        }
+
+        .signatures td,
+        .signatures th {
+            border: 1px solid black;
+            padding: 10px;
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .signatures th {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        .signature-box {
+            height: 100px;
+        }
+
+        strong {
+            font-weight: bold;
+        }
+
+        /* Draggable Images */
+        .floating-image {
+            position: absolute;
+            cursor: move;
+            z-index: 100;
+            display: inline-block;
+            border: 1px dashed transparent;
+        }
+
+        .floating-image:hover,
+        .floating-image.active {
+            border-color: #007bff;
+            z-index: 101;
+        }
+
+        .floating-image img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        }
+
+        .img-resize-handle {
+            width: 15px;
+            height: 15px;
+            background: #007bff;
+            position: absolute;
+            display: none;
+            z-index: 102;
+            border: 1px solid white;
+            border-radius: 50%;
+        }
+
+        .floating-image:hover .img-resize-handle,
+        .floating-image.active .img-resize-handle {
+            display: block;
+        }
+
+        .handle-se {
+            bottom: -7px;
+            right: -7px;
+            cursor: se-resize;
+        }
+
+        /* Print & PDF Export Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .pdf-toolbar {
+                display: none !important;
+            }
+
+            .page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+                /* Force A4 dimensions in print to support 100% height backgrounds */
+                min-height: 297mm;
+                height: 297mm;
+                padding-top: var(--pad-top) !important;
+                padding-bottom: var(--pad-bottom) !important;
+                padding-left: var(--pad-left) !important;
+                padding-right: var(--pad-right) !important;
+                border: none;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                overflow: hidden;
+            }
+
+            #letterhead-bg {
+                display: block !important;
+                z-index: 0 !important;
+                /* Ensure it covers the fixed page height */
+                height: 100% !important;
+                width: 100% !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            .content,
+            h1,
+            .signatures,
+            .floating-image {
+                position: relative;
+                z-index: 2;
+            }
+
+            .floating-image {
+                border: none !important;
+            }
+
+            .img-resize-handle {
+                display: none !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+
+        /* Generating PDF Class (matches print style mostly) */
+        .generating-pdf .pdf-toolbar,
+        .generating-pdf .img-resize-handle {
+            display: none !important;
+        }
+
+        .generating-pdf .page {
+            margin: 0;
+            box-shadow: none;
+            border: none;
+            min-height: 297mm !important;
+            height: 297mm !important;
+            overflow: hidden !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="pdf-toolbar">
+        <!-- Font Size -->
+        <button class="action-btn" onclick="adjustAppearance('font', 1)" title="Increase Font">
+            <strong>A +</strong>
+        </button>
+        <button class="action-btn" onclick="adjustAppearance('font', -1)" title="Decrease Font">
+            <strong>A -</strong>
+        </button>
+
+        <!-- Line Height -->
+        <button class="action-btn" onclick="adjustAppearance('lineHeight', 0.1)" title="Increase Line Height">
+            <i class="fas fa-arrows-alt-v"></i> +
+        </button>
+        <button class="action-btn" onclick="adjustAppearance('lineHeight', -0.1)" title="Decrease Line Height">
+            <i class="fas fa-arrows-alt-v"></i> -
+        </button>
+
+        <!-- Top Margin -->
+        <button class="action-btn" onclick="adjustAppearance('padTop', 5)" title="Increase Top Margin">
+            <i class="fas fa-arrow-up"></i> +
+        </button>
+        <button class="action-btn" onclick="adjustAppearance('padTop', -5)" title="Decrease Top Margin">
+            <i class="fas fa-arrow-up"></i> -
+        </button>
+
+        <!-- Letterhead -->
+        <button class="action-btn" onclick="document.getElementById('letterheadUpload').click()" title="Add Letterhead">
+            <i class="fas fa-plus"></i> Letterhead
+        </button>
+        <button class="action-btn btn-danger" onclick="removeLetterhead()" title="Remove Letterhead">
+            <i class="fas fa-trash-alt"></i> Letterhead
+        </button>
+
+        <!-- Stamp/Sign -->
+        <button class="action-btn" onclick="document.getElementById('imageUpload').click()" title="Add Seal/Signature">
+            <i class="fas fa-images"></i> Seal/Sign
+        </button>
+        <button class="action-btn btn-danger" onclick="removeSelectedImage()" title="Remove Selected Image">
+            <i class="fas fa-trash"></i> Remove
+        </button>
+
+        <!-- Print/PDF -->
+        <button class="action-btn btn-icon" onclick="window.print()" title="Print">
+            <i class="fas fa-print"></i>
+        </button>
+        <button class="action-btn btn-icon" onclick="downloadPDF()" title="Save PDF">
+            <i class="fas fa-file-pdf"></i>
+        </button>
+
+        <!-- Hidden Inputs -->
+        <input type="file" id="letterheadUpload" accept="image/*" onchange="updateLetterhead(this)">
+        <input type="file" id="imageUpload" accept="image/*" multiple onchange="handleImageUpload(this)">
+    </div>
+
+    <div class="page" id="agreementPage">
+        <!-- Letterhead Image Element -->
+        <img id="letterhead-bg" src="" alt="">
+
+        <h1 contenteditable="true">Declaration of Voluntary Passport Submission</h1>
+
+        <div class="content" contenteditable="true">
+            <p>
+                I, <strong><span id="empName"></span></strong>, holder of Qatar ID No. <strong><span
+                        id="qidNo"></span></strong> and Passport No. <strong><span id="passportNo"></span></strong>,
+                hereby declare and confirm that I have voluntarily submitted my passport to <strong><span
+                        id="companyName"></span></strong> on <strong><span id="date"></span></strong>.
+            </p>
+
+            <p>
+                I confirm that this submission has been made entirely of my own free will, without any pressure,
+                coercion, or requirement from the company, its management, or any of its representatives.
+            </p>
+
+            <p><strong>I further acknowledge that:</strong></p>
+
+            <ul>
+                <li>My passport has been submitted for official and administrative purposes only.</li>
+                <li>I retain the full right to request the return of my passport at any time.</li>
+                <li>Upon request, the company shall return my passport immediately without delay.</li>
+            </ul>
+
+            <p>
+                This declaration is executed freely and willingly for official record purposes and in compliance with
+                the laws and regulations of the State of Qatar, including the instructions of the Ministry of Labour.
+            </p>
+        </div>
+
+        <table class="signatures">
+            <thead>
+                <tr>
+                    <th contenteditable="true">Employee Signature</th>
+                    <th contenteditable="true">Employer Company Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="signature-box" contenteditable="true"></td>
+                    <td class="signature-box" contenteditable="true"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- Data Loading ---
+        const data = JSON.parse(localStorage.getItem('passportAgreementData'));
+
+        if (data) {
+            document.getElementById('empName').innerText = data.empName;
+            document.getElementById('qidNo').innerText = data.qidNo;
+            document.getElementById('passportNo').innerText = data.passportNo;
+            document.getElementById('companyName').innerText = data.companyName;
+            document.getElementById('date').innerText = data.formattedDate || data.date;
+        } else {
+            // Optional: Redirect if no data, or just show blank
+            // window.location.href = 'input.html'; 
+        }
+
+        // --- Interaction Logic ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load Letterhead
+            const savedLetterhead = localStorage.getItem('agreementLetterhead');
+            if (savedLetterhead) applyLetterhead(savedLetterhead);
+
+            // Load Images
+            const savedImages = JSON.parse(localStorage.getItem('agreementImages'));
+            if (savedImages && Array.isArray(savedImages)) {
+                savedImages.forEach(img => {
+                    addImageElement(img.id, img.src, img.x, img.y, img.w, img.h);
+                });
+            }
+        });
+
+        // Deselect images on background click
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.floating-image') && !e.target.classList.contains('action-btn')) {
+                setActiveImage(null);
+            }
+        });
+
+        // Appearance
+        let currentFontSize = 12;
+        let currentLineHeight = 1.6;
+        let currentPadTop = 40; // mm
+
+        function adjustAppearance(type, step) {
+            if (type === 'font') {
+                currentFontSize += step;
+                if (currentFontSize < 8) currentFontSize = 8;
+                document.documentElement.style.setProperty('--font-size', currentFontSize + 'pt');
+            } else if (type === 'lineHeight') {
+                currentLineHeight += step;
+                if (currentLineHeight < 1) currentLineHeight = 1;
+                document.documentElement.style.setProperty('--line-height', currentLineHeight);
+            } else if (type === 'padTop') {
+                currentPadTop += step;
+                if (currentPadTop < 0) currentPadTop = 0;
+                document.documentElement.style.setProperty('--pad-top', currentPadTop + 'mm');
+            }
+        }
+
+        // Letterhead (Updated to use IMG tag)
+        function applyLetterhead(base64Img) {
+            const img = document.getElementById('letterhead-bg');
+            if (base64Img) {
+                img.src = base64Img;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+        }
+
+        function updateLetterhead(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64 = e.target.result;
+                    applyLetterhead(base64);
+                    localStorage.setItem('agreementLetterhead', base64);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeLetterhead() {
+            const img = document.getElementById('letterhead-bg');
+            img.src = '';
+            img.style.display = 'none';
+            localStorage.removeItem('agreementLetterhead');
+        }
+
+        // Images (Stamps/Signatures)
+        let activeImageId = null;
+
+        function handleImageUpload(input) {
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                        addImageElement(id, e.target.result);
+                        saveImagesState();
+                    };
+                    reader.readAsDataURL(file);
+                });
+                input.value = '';
+            }
+        }
+
+        function addImageElement(id, src, x = 50, y = 500, w = 150, h = 150) {
+            const container = document.createElement('div');
+            container.className = 'floating-image';
+            container.id = id;
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            container.style.width = w + 'px';
+            container.style.height = h + 'px';
+
+            container.addEventListener('mousedown', function (e) {
+                if (e.target.classList.contains('img-resize-handle')) return;
+                setActiveImage(id);
+            });
+
+            const img = document.createElement('img');
+            img.src = src;
+            container.appendChild(img);
+
+            // Handle
+            const handle = document.createElement('div');
+            handle.className = 'img-resize-handle handle-se';
+            container.appendChild(handle);
+
+            document.getElementById('agreementPage').appendChild(container);
+            makeDraggable(container);
+            makeResizable(container);
+            setActiveImage(id);
+        }
+
+        function setActiveImage(id) {
+            document.querySelectorAll('.floating-image').forEach(el => el.classList.remove('active'));
+            activeImageId = id;
+            if (id) document.getElementById(id)?.classList.add('active');
+        }
+
+        function removeSelectedImage() {
+            if (activeImageId) {
+                document.getElementById(activeImageId)?.remove();
+                activeImageId = null;
+                saveImagesState();
+            }
+        }
+
+        function saveImagesState() {
+            const images = [];
+            document.querySelectorAll('.floating-image').forEach(el => {
+                images.push({
+                    id: el.id,
+                    src: el.querySelector('img').src,
+                    x: parseInt(el.style.left),
+                    y: parseInt(el.style.top),
+                    w: parseInt(el.style.width),
+                    h: parseInt(el.style.height)
+                });
+            });
+            localStorage.setItem('agreementImages', JSON.stringify(images));
+        }
+
+        function makeDraggable(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elmnt.addEventListener('mousedown', dragMouseDown);
+            elmnt.addEventListener('touchstart', dragMouseDown, { passive: false });
+
+            function dragMouseDown(e) {
+                if (e.target.classList.contains('img-resize-handle')) return;
+
+                pos3 = e.clientX || e.touches[0].clientX;
+                pos4 = e.clientY || e.touches[0].clientY;
+
+                document.addEventListener('mouseup', closeDragElement);
+                document.addEventListener('touchend', closeDragElement);
+                document.addEventListener('mousemove', elementDrag);
+                document.addEventListener('touchmove', elementDrag, { passive: false });
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                pos1 = pos3 - clientX;
+                pos2 = pos4 - clientY;
+                pos3 = clientX;
+                pos4 = clientY;
+
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.removeEventListener('mouseup', closeDragElement);
+                document.removeEventListener('touchend', closeDragElement);
+                document.removeEventListener('mousemove', elementDrag);
+                document.removeEventListener('touchmove', elementDrag);
+                saveImagesState();
+            }
+        }
+
+        function makeResizable(elmnt) {
+            const handle = elmnt.querySelector('.img-resize-handle');
+            handle.addEventListener('mousedown', initResize);
+
+            function initResize(e) {
+                e.preventDefault(); e.stopPropagation();
+                const startX = e.clientX;
+                const startWidth = elmnt.offsetWidth;
+                const startHeight = elmnt.offsetHeight;
+                const aspectRatio = startWidth / startHeight;
+
+                function doDrag(e) {
+                    const newWidth = startWidth + (e.clientX - startX);
+                    if (newWidth > 20) {
+                        elmnt.style.width = newWidth + 'px';
+                        elmnt.style.height = (newWidth / aspectRatio) + 'px';
+                    }
+                }
+
+                function stopDrag() {
+                    document.removeEventListener('mousemove', doDrag);
+                    document.removeEventListener('mouseup', stopDrag);
+                    saveImagesState();
+                }
+
+                document.addEventListener('mousemove', doDrag);
+                document.addEventListener('mouseup', stopDrag);
+            }
+        }
+
+        // PDF Export
+        function downloadPDF() {
+            // Hide things
+            document.body.classList.add('generating-pdf');
+            const element = document.querySelector('.page');
+
+            const opt = {
+                margin: 0,
+                filename: 'Passport_Agreement.pdf',
+                image: {
+                    type: 'jpeg',
+                    quality: 0.98
+                },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait'
+                }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('generating-pdf');
+            });
+        }
+    </script>
+</body>
+
+</html>

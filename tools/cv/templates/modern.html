@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <title>Richard Sanchez - CV</title>
+    <link rel="stylesheet" href="modern.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<body>
+    <!-- Toolbar -->
+    <!-- Toolbar -->
+    <div class="pdf-toolbar">
+        <button class="action-btn" onclick="adjustFontSize(1)" title="Increase Font"><i
+                class="fas fa-font"></i>+</button>
+        <button class="action-btn" onclick="adjustFontSize(-1)" title="Decrease Font"><i
+                class="fas fa-font"></i>-</button>
+
+        <button class="action-btn" onclick="adjustSpacing(5)" title="Increase Spacing"><i
+                class="fas fa-arrow-up"></i>+</button>
+        <button class="action-btn" onclick="adjustSpacing(-5)" title="Decrease Spacing"><i
+                class="fas fa-arrow-up"></i>-</button>
+
+
+
+        <button class="action-btn" onclick="printCV()"><i class="fas fa-print"></i></button>
+
+    </div>
+    <div class="page" id="cvPage">
+        <header class="header">
+            <div class="header-content">
+                <div class="profile-image-container">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80"
+                        alt="Richard Sanchez" class="profile-image">
+                </div>
+                <div class="header-text">
+                    <h1 contenteditable="true">{{contact.name}}</h1>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <aside class="sidebar">
+                <section class="contact-section">
+                    <h3 contenteditable="true">CONTACT</h3>
+                    <div class="underline"></div>
+                    <ul class="contact-list">
+                        <li contenteditable="true"><i class="fas fa-phone"></i> {{contact.num}}</li>
+                        <li contenteditable="true"><i class="fas fa-envelope"></i> {{contact.email}}</li>
+                        <li contenteditable="true"><i class="fas fa-map-marker-alt"></i> {{contact.location}}</li>
+                    </ul>
+                </section>
+
+                <section class="skills-section">
+                    <h3 contenteditable="true">SKILLS</h3>
+                    <div class="underline"></div>
+                    <ul class="skills-list">
+
+                    </ul>
+                </section>
+
+                <section class="languages-section">
+                    <h3 contenteditable="true">LANGUAGES</h3>
+                    <div class="underline"></div>
+                    <ul class="languages-list">
+                        <li contenteditable="true">English (Fluent)</li>
+                        <li contenteditable="true">Hindi (Fluent)</li>
+                        <li contenteditable="true">Arabic (Fluent)</li>
+                    </ul>
+                </section>
+
+                <section class="education-section">
+                    <h3 contenteditable="true">EDUCATION</h3>
+                    <div class="underline"></div>
+                    <ul class="education-list">
+                        <li contenteditable="true">Higher Secondary School Certificate</li>
+                    </ul>
+                </section>
+            </aside>
+
+            <div class="content-body">
+                <section class="profile-section">
+                    <div class="section-title">
+                        <div class="icon-circle"><i class="fa-solid fa-align-justify"></i></div>
+                        <h3 contenteditable="true">SUMMARY</h3>
+                    </div>
+                    <p contenteditable="true">{{summery}}</p>
+                </section>
+
+                <section class="experience-section">
+                    <div class="section-title">
+                        <div class="icon-circle"><i class="fas fa-briefcase"></i></div>
+                        <h3 contenteditable="true">WORK EXPERIENCE</h3>
+                    </div>
+
+                    <div class="experience-item">
+                        <div class="timeline-dot"></div>
+                        <div class="job-header">
+                            <h4 contenteditable="true"></h4>
+                            <span class="date" contenteditable="true"></span>
+                        </div>
+                        <div class="job-title" contenteditable="true"></div>
+                        <ul>
+                            <li contenteditable="true"></li>
+                            <li contenteditable="true"></li>
+                            <li contenteditable="true"></li>
+                        </ul>
+                    </div>
+
+                    <div class="experience-item">
+                        <div class="timeline-dot"></div>
+                        <div class="job-header">
+                            <h4 contenteditable="true"></h4>
+                            <span class="date" contenteditable="true"></span>
+                        </div>
+                        <div class="job-title" contenteditable="true"></div>
+                        <ul>
+                            <li contenteditable="true"></li>
+                            <li contenteditable="true"></li>
+                        </ul>
+                    </div>
+
+                    <div class="experience-item">
+                        <div class="timeline-dot"></div>
+                        <div class="job-header">
+                            <h4 contenteditable="true">Studio Shodwe</h4>
+                            <span class="date" contenteditable="true">2024 - 2025</span>
+                        </div>
+                        <div class="job-title" contenteditable="true">Marketing Manager & Specialist</div>
+                        <ul>
+                            <li contenteditable="true">Develop and maintain strong relationships with partners,
+                                agencies, and vendors to
+                                support marketing initiatives.</li>
+                            <li contenteditable="true">Monitor and maintain brand consistency across all marketing
+                                channels and materials.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="personal-details-section">
+                    <div class="section-title">
+                        <div class="icon-circle"><i class="fas fa-user"></i></div>
+                        <h3 contenteditable="true">PERSONAL DETAILS</h3>
+                    </div>
+
+                    <div class="personal-details-list">
+                        <div class="timeline-details-dot"></div>
+                        <div class="detail-grid">
+                            <div class="detail-row" contenteditable="true"><strong>Qid Number</strong><span
+                                    class="colon">:</span></div>
+                            <div class="detail-row" contenteditable="true"><strong>Qid Expiry</strong><span
+                                    class="colon">:</span></div>
+                            <div class="detail-row" contenteditable="true"><strong>Date of Birth</strong><span
+                                    class="colon">:</span>
+                            </div>
+                            <div class="detail-row" contenteditable="true"><strong>Passport Number</strong><span
+                                    class="colon">:</span></div>
+                            <div class="detail-row" contenteditable="true"><strong>Passport Expiry</strong><span
+                                    class="colon">:</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fitToScreen();
+
+            // Toolbar Padding Logic
+            const toolbar = document.querySelector('.pdf-toolbar');
+            if (toolbar) {
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        document.body.style.paddingTop = (entry.contentRect.height + 20) + 'px';
+                    }
+                });
+                resizeObserver.observe(toolbar);
+            }
+
+            const cvData = JSON.parse(localStorage.getItem('cvData'));
+            const page = document.querySelector('.page');
+
+            // Compact Mode Logic for 3+ Jobs
+            if (cvData && cvData.jobs.length > 2) {
+                page.classList.add('compact-mode');
+            } else {
+                page.classList.remove('compact-mode');
+            }
+
+            if (cvData) {
+                // Populate Contact
+                const headerText = document.querySelector('.header-text');
+                if (headerText) {
+                    headerText.innerHTML = `
+                        <h1 contenteditable="true">${cvData.contact.name}</h1>
+                        <p contenteditable="true">${cvData.target_job_title || 'PROFESSIONAL'}</>
+                    `;
+                }
+
+                // Populate Photo
+                if (cvData.contact.photo) {
+                    const img = document.querySelector('.profile-image');
+                    if (img) img.src = cvData.contact.photo;
+                }
+
+                // Add Photo Change Functionality
+                const profileContainer = document.querySelector('.profile-image-container');
+                if (profileContainer) {
+                    // Create hidden input
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.style.display = 'none';
+                    profileContainer.appendChild(fileInput);
+
+                    // Add click handler to container
+                    profileContainer.style.cursor = 'pointer';
+                    profileContainer.title = 'Click to change photo';
+                    profileContainer.addEventListener('click', () => fileInput.click());
+
+                    // Handle file selection
+                    fileInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function (evt) {
+                                const newPhoto = evt.target.result;
+                                document.querySelector('.profile-image').src = newPhoto;
+                                // Update localStorage
+                                const currentData = JSON.parse(localStorage.getItem('cvData'));
+                                currentData.contact.photo = newPhoto;
+                                localStorage.setItem('cvData', JSON.stringify(currentData));
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+
+                const contactList = document.querySelector('.contact-list');
+                if (contactList) {
+                    contactList.innerHTML = `
+                        <li contenteditable="true"><i class="fas fa-phone"></i> ${cvData.contact.phone}</li>
+                        <li contenteditable="true"><i class="fas fa-envelope"></i> ${cvData.contact.email}</li>
+                        <li contenteditable="true"><i class="fas fa-map-marker-alt"></i> ${cvData.jobs[0]?.location || 'Location'}</li>
+                    `;
+                }
+
+                // Populate Skills
+                const skillsList = document.querySelector('.skills-list');
+                if (skillsList) {
+                    skillsList.innerHTML = cvData.ai_content.skills.map(skill =>
+                        `<li contenteditable="true">${skill}</li>`
+                    ).join('');
+                }
+
+                // Populate Languages
+                const languagesList = document.querySelector('.languages-list');
+                if (languagesList) {
+                    if (cvData.languages && cvData.languages.length > 0) {
+                        languagesList.innerHTML = cvData.languages.map(lang =>
+                            `<li contenteditable="true">${lang}</li>`
+                        ).join('');
+                    } else {
+                        languagesList.innerHTML = `<li contenteditable="true">English (Fluent)</li>`;
+                    }
+                }
+
+                // Populate Education
+                const educationList = document.querySelector('.education-list');
+                if (educationList) {
+                    if (cvData.education && cvData.education.length > 0) {
+                        educationList.innerHTML = cvData.education.map(edu =>
+                            `<li contenteditable="true">
+                                <strong>${edu.degree}</strong><br>
+                                <span>${edu.school}</span><br>
+                                <span style="font-size: 0.9em; opacity: 0.8">${edu.country}</span>
+                            </li>`
+                        ).join('');
+                    } else {
+                        educationList.innerHTML = `<li contenteditable="true">Higher Secondary School Certificate</li>`;
+                    }
+                }
+
+                // Populate Summary
+                const profileSection = document.querySelector('.profile-section');
+                if (profileSection) {
+                    const profileText = profileSection.querySelector('p');
+                    if (profileText) profileText.innerText = cvData.ai_content.summary;
+                }
+
+                // Populate Personal Details
+                const detailGrid = document.querySelector('.detail-grid');
+                if (detailGrid) {
+                    detailGrid.innerHTML = `
+                        <div class="detail-row" contenteditable="true"><strong>QID Number</strong><span class="colon">:</span> ${cvData.personal.qid}</div>
+                        <div class="detail-row" contenteditable="true"><strong>QID Expiry</strong><span class="colon">:</span> ${cvData.personal.qid_exp}</div>
+                        <div class="detail-row" contenteditable="true"><strong>Date of Birth</strong><span class="colon">:</span> ${cvData.personal.dob}</div>
+                        <div class="detail-row" contenteditable="true"><strong>Passport Number</strong><span class="colon">:</span> ${cvData.personal.passport_no}</div>
+                        <div class="detail-row" contenteditable="true"><strong>Passport Expiry</strong><span class="colon">:</span> ${cvData.personal.passport_exp}</div>
+                    `;
+                }
+
+                // Populate Experience
+                const experienceSection = document.querySelector('.experience-section');
+                // Keep the header "WORK EXPERIENCE"
+                const sectionTitle = experienceSection.querySelector('.section-title');
+                experienceSection.innerHTML = '';
+                experienceSection.appendChild(sectionTitle);
+
+                cvData.jobs.forEach(job => {
+                    const jobItem = document.createElement('div');
+                    jobItem.className = 'experience-item';
+                    jobItem.innerHTML = `
+                        <div class="timeline-dot"></div>
+                        <div class="job-header">
+                            <h4 contenteditable="true">${job.title}</h4>
+                            <span class="date" contenteditable="true">${job.working_year}</span>
+                        </div>
+                        <div class="job-company" contenteditable="true">${job.company}</div>
+                        <ul>
+                            ${job.bullets.map(bullet => `<li contenteditable="true">${bullet}</li>`).join('')}
+                        </ul>
+                    `;
+                    experienceSection.appendChild(jobItem);
+                });
+            }
+
+            // Re-attach controls after population or on load
+            setTimeout(attachDynamicControls, 100);
+
+            // Event Delegation for Add/Remove
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.add-item-btn')) {
+                    const currentItem = e.target.closest('.editable-container');
+                    if (currentItem) {
+                        const newItem = currentItem.cloneNode(true);
+
+                        // Setup new item based on type
+                        if (newItem.tagName === 'LI') {
+                            newItem.innerHTML = 'New Item';
+                            // Maintain icon if it was a contact item?
+                            if (currentItem.querySelector('i')) {
+                                const iconClass = currentItem.querySelector('i').className;
+                                newItem.innerHTML = `<i class="${iconClass}"></i> New Item`;
+                            }
+                        } else if (newItem.classList.contains('detail-row')) {
+                            newItem.innerHTML = '<strong>New Field:</strong> Value';
+                        } else if (newItem.tagName === 'P') {
+                            newItem.innerText = 'New details...';
+                        }
+
+                        // Insert after
+                        currentItem.after(newItem);
+
+                        // Re-attach controls (remove cloned controls first)
+                        newItem.querySelector('.edit-controls')?.remove();
+                        addControlsToElement(newItem);
+                    }
+                }
+
+                if (e.target.closest('.remove-item-btn')) {
+                    const currentItem = e.target.closest('.editable-container');
+                    if (currentItem) {
+                        if (confirm('Remove this item?')) {
+                            currentItem.remove();
+                        }
+                    }
+                }
+            });
+
+            function attachDynamicControls() {
+                // Skills
+                document.querySelectorAll('.skills-list li').forEach(el => addControlsToElement(el));
+
+                // Contact
+                document.querySelectorAll('.contact-list li').forEach(el => addControlsToElement(el));
+
+                // Languages
+                document.querySelectorAll('.languages-list li').forEach(el => addControlsToElement(el));
+
+                // Education
+                document.querySelectorAll('.education-list li').forEach(el => addControlsToElement(el));
+
+                // Job Bullets
+                document.querySelectorAll('.experience-item ul li').forEach(el => addControlsToElement(el));
+
+                // Personal Details
+                document.querySelectorAll('.detail-row').forEach(el => addControlsToElement(el));
+            }
+
+            function addControlsToElement(el) {
+                if (el.querySelector('.edit-controls')) return;
+
+                el.classList.add('editable-container');
+
+                const controls = document.createElement('div');
+                controls.className = 'edit-controls';
+                controls.contentEditable = "false";
+                controls.innerHTML = `
+                    <button class="edit-btn add-item-btn" title="Add New">+</button>
+                    <button class="edit-btn remove-item-btn" title="Remove">-</button>
+                `;
+                el.appendChild(controls);
+            }
+        });
+
+
+        // --- Toolbar Functions ---
+
+        // Auto-Fit Function (Mobile Logic)
+        function fitToScreen() {
+            const page = document.querySelector('.page');
+            const pageWidth = 794; // A4 px at 96dpi approx
+            const windowWidth = window.innerWidth;
+
+            if (windowWidth < pageWidth) {
+                const scale = (windowWidth - 20) / pageWidth; // 20px padding buffer
+
+                // Set scale
+                page.style.transform = `scale(${scale})`;
+                page.style.transformOrigin = 'top center';
+
+                /* Margin left calculation removed */
+                page.style.marginLeft = '0';
+                page.style.marginTop = '0';
+
+                // Adjust margin bottom
+                const heightDiff = page.offsetHeight * (1 - scale);
+                page.style.marginBottom = `-${heightDiff}px`;
+            } else {
+                // Desktop Reset
+                page.style.transform = '';
+                page.style.transformOrigin = '';
+                page.style.marginBottom = '';
+                page.style.marginLeft = '';
+                page.style.marginTop = '';
+            }
+        }
+        window.addEventListener('resize', fitToScreen);
+
+        let currentFontSize = 14;
+
+        function adjustFontSize(step) {
+            currentFontSize += step;
+            if (currentFontSize < 10) currentFontSize = 10;
+            if (currentFontSize > 24) currentFontSize = 24;
+            document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+        }
+
+        function adjustSpacing(step) {
+            const root = document.documentElement;
+            const style = getComputedStyle(root);
+            let current = parseInt(style.getPropertyValue('--section-spacing')) || 20;
+            let newSpacing = current + step;
+            if (newSpacing < 5) newSpacing = 5; // Minimum spacing
+            if (newSpacing > 100) newSpacing = 100; // Max spacing
+
+            root.style.setProperty('--section-spacing', newSpacing + 'px');
+        }
+
+
+
+        function printCV() {
+            window.print();
+        }
+
+        function downloadPDF() {
+            // Hide controls
+            const controls = document.querySelectorAll('.pdf-toolbar, .edit-controls, .action-btn, .edit-btn');
+            const displayStates = [];
+            controls.forEach(c => {
+                displayStates.push({ el: c, val: c.style.display });
+                c.style.display = 'none';
+            });
+
+            const element = document.querySelector('.page');
+            document.body.classList.add('generating-pdf');
+
+            // Save state
+            const originalHeight = element.style.height;
+            const originalOverflow = element.style.overflow;
+            const originalTransform = element.style.transform;
+            const originalMargin = element.style.margin;
+
+            // Strict A4
+            element.style.transform = 'none';
+            element.style.margin = '0';
+
+            element.style.setProperty('width', '210mm', 'important');
+            element.style.setProperty('height', '297mm', 'important');
+            element.style.setProperty('min-height', '297mm', 'important');
+            element.style.overflow = 'hidden';
+            element.style.borderRadius = '0';
+
+            window.scrollTo(0, 0);
+
+            const opt = {
+                margin: 0,
+                filename: 'My_CV.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0,
+                    windowWidth: 794 // Force A4 width in px
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('generating-pdf');
+
+                // Restore controls
+                controls.forEach((c, i) => {
+                    c.style.display = displayStates[i].val;
+                });
+
+                // Restore state
+                element.style.height = originalHeight;
+                element.style.overflow = originalOverflow;
+                element.style.margin = originalMargin;
+                element.style.transform = originalTransform;
+            });
+        }
+    </script>
+</body>
+
+</html>

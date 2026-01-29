@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Quotation Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F3F4F6;
+            margin: 0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2D3A4B;
+            margin-bottom: 40px;
+        }
+
+        .templates-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .template-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 300px;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            border-color: #2D3A4B;
+        }
+
+        .preview-box {
+            width: 250px;
+            height: 250px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: top;
+            font-size: 14px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+            background-color: #f9fafb;
+        }
+
+        .preview-box::after {
+            content: 'Preview';
+            position: absolute;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        /* Modern */
+        .p-1 {
+            background-image: url('../../assets/qtemplate-preview-modern.png');
+            /* background: linear-gradient(to bottom, #2D3A4B 50px, #fff 50px); */
+        }
+
+        /* Classic */
+        .p-2 {
+            background-image: url('../../assets/qtemplate-preview-classic.png');
+            /* background: linear-gradient(to bottom, #fff 20px, #000 22px, #fff 22px);
+            border: 1px solid #000; */
+        }
+
+        h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Choose Your Quotation Design</h1>
+
+    <div class="templates-grid">
+        <!-- Template 1 -->
+        <div class="template-card" onclick="selectTemplate('modern')">
+            <div class="preview-box p-1"></div>
+            <h3>Company</h3>
+            <p>Clean, header-focused design</p>
+        </div>
+        <!-- Template 2 -->
+        <div class="template-card" onclick="selectTemplate('classic')">
+            <div class="preview-box p-2"></div>
+            <h3>Classic Box/ Indivisual</h3>
+            <p>Formal, boxed layout best for individual</p>
+        </div>
+    </div>
+
+    <script>
+        function selectTemplate(templateId) {
+            localStorage.setItem('selectedQuoteTemplate', templateId);
+            window.location.href = 'input.html';
+        }
+    </script>
+</body>
+
+</html>

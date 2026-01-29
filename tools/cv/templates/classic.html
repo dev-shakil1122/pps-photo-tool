@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <title>CV Preview - Classic</title>
+    <link rel="stylesheet" href="classic.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<body>
+    <!-- Toolbar -->
+    <!-- Toolbar -->
+    <div class="pdf-toolbar">
+        <button class="action-btn" onclick="adjustFontSize(1)" title="Increase Font"><i
+                class="fas fa-font"></i>+</button>
+        <button class="action-btn" onclick="adjustFontSize(-1)" title="Decrease Font"><i
+                class="fas fa-font"></i>-</button>
+
+        <button class="action-btn" onclick="adjustSpacing(5)" title="Increase Spacing"><i
+                class="fas fa-arrow-up"></i>+</button>
+        <button class="action-btn" onclick="adjustSpacing(-5)" title="Decrease Spacing"><i
+                class="fas fa-arrow-up"></i>-</button>
+
+
+
+        <button class="action-btn" onclick="printCV()"><i class="fas fa-print"></i></button>
+
+    </div>
+
+    <!-- CV Page Content -->
+    <div class="page" id="cvPage">
+        <!-- Header: Name Left, Photo Right -->
+        <header class="header">
+            <div class="header-left">
+                <h1 contenteditable="true" class="name-display">Your Name</h1>
+                <div class="contact-info">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            <div class="profile-image-container">
+                <img src="https://via.placeholder.com/150" alt="Profile" class="profile-image">
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Left Column: Summary, Experience, Personal Details -->
+            <div class="left-column">
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Professional Summary</h3>
+                    </div>
+                    <p contenteditable="true" class="summary-text">Summary text...</p>
+                </section>
+
+                <section class="section experience-section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Work Experience</h3>
+                    </div>
+                    <!-- JS Populates this -->
+                </section>
+
+                <section class="section personal-details-section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Personal Details</h3>
+                    </div>
+                    <div class="detail-grid">
+                        <!-- JS Populates this -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Skills, Languages, Education -->
+            <aside class="right-column">
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Professional Skill</h3>
+                    </div>
+                    <ul class="skills-list">
+                        <!-- JS Populates -->
+                    </ul>
+                </section>
+
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Soft Skill</h3>
+                    </div>
+                    <ul class="soft-skills-list">
+                        <li contenteditable="true">Adaptability</li>
+                        <li contenteditable="true">Communication</li>
+                        <li contenteditable="true">Teamwork</li>
+                        <li contenteditable="true">Time Management</li>
+                        <li contenteditable="true">Safety Conscious</li>
+                    </ul>
+                </section>
+
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Language</h3>
+                    </div>
+                    <ul class="languages-list">
+                        <!-- JS Populates -->
+                    </ul>
+                </section>
+
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Education</h3>
+                    </div>
+                    <ul class="education-list">
+                        <!-- JS Populates -->
+                    </ul>
+                </section>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        // Export functions removed as per request
+
+        // --- Helper Functions for Edit Controls ---
+
+        // Auto-Fit Function (Mobile Logic)
+        function fitToScreen() {
+            const page = document.querySelector('.page');
+            const pageWidth = 794; // A4 px at 96dpi approx
+            const windowWidth = window.innerWidth;
+
+            if (windowWidth < pageWidth) {
+                const scale = (windowWidth - 20) / pageWidth; // 20px padding buffer
+
+                // Set scale
+                page.style.transform = `scale(${scale})`;
+                page.style.transformOrigin = 'top center'; /* Changed to center */
+
+                /* Margin left calculation removed - let flexbox center it */
+                page.style.marginLeft = '0';
+                page.style.marginTop = '0';
+
+                // Adjust margin bottom to remove dead space
+                const heightDiff = page.offsetHeight * (1 - scale);
+                page.style.marginBottom = `-${heightDiff}px`;
+
+            } else {
+                // Desktop Reset
+                page.style.transform = '';
+                page.style.transformOrigin = '';
+                page.style.marginBottom = '';
+                page.style.marginLeft = '';
+                page.style.marginTop = '';
+            }
+        }
+        window.addEventListener('resize', fitToScreen);
+
+
+        function attachDynamicControls() {
+            document.querySelectorAll(
+                '.skills-list li, .soft-skills-list li, ' +
+                '.contact-info div, ' +
+                '.languages-list li, ' +
+                '.education-list li, ' +
+                '.job-item ul li, ' +
+                '.detail-row'
+            ).forEach(el => addControlsToElement(el));
+        }
+
+        function addControlsToElement(el) {
+            if (el.querySelector('.edit-controls')) return;
+            el.classList.add('editable-container');
+            const controls = document.createElement('div');
+            controls.className = 'edit-controls';
+            controls.contentEditable = "false";
+            controls.innerHTML = `
+                <button class="edit-btn add-item-btn" title="Add New">+</button>
+                <button class="edit-btn remove-item-btn" title="Remove">-</button>
+            `;
+            el.appendChild(controls);
+        }
+
+        // --- Main Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const cvData = JSON.parse(localStorage.getItem('cvData'));
+
+            if (cvData) {
+                // Toolbar logic removed
+
+                // 1. Header
+                document.querySelector('.name-display').innerText = cvData.contact.name;
+
+                const contactDiv = document.querySelector('.contact-info');
+                // Format: Phone: ... | Email: ... | Location ...
+                contactDiv.innerHTML = `
+                    <div contenteditable="true">Phone: ${cvData.contact.phone} | Email: ${cvData.contact.email}</div>
+                    <div contenteditable="true">Location: ${cvData.jobs[0]?.location || 'Doha, Qatar'}</div>
+                `;
+
+                // Photo
+                if (cvData.contact.photo) {
+                    document.querySelector('.profile-image').src = cvData.contact.photo;
+                }
+
+                // Photo Editing Logic (Copied)
+                const profileContainer = document.querySelector('.profile-image-container');
+                if (profileContainer) {
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.style.display = 'none';
+                    profileContainer.appendChild(fileInput);
+                    profileContainer.onclick = () => fileInput.click();
+                    fileInput.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                const newPhoto = evt.target.result;
+                                document.querySelector('.profile-image').src = newPhoto;
+                                const current = JSON.parse(localStorage.getItem('cvData')) || cvData;
+                                current.contact.photo = newPhoto;
+                                localStorage.setItem('cvData', JSON.stringify(current));
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                }
+
+                // 2. Summary
+                document.querySelector('.summary-text').innerText = cvData.ai_content.summary;
+
+                // 3. Experience
+                const expSection = document.querySelector('.experience-section');
+                const expTitle = expSection.querySelector('.section-title');
+                expSection.innerHTML = '';
+                expSection.appendChild(expTitle);
+
+                cvData.jobs.forEach(job => {
+                    const jobDiv = document.createElement('div');
+                    jobDiv.className = 'job-item';
+                    jobDiv.innerHTML = `
+                        <div class="job-header">
+                            <span contenteditable="true">${job.title}</span>
+                            <span contenteditable="true">${job.working_year}</span>
+                        </div>
+                        <div class="job-company" contenteditable="true">${job.company} - ${job.location}</div>
+                        <ul>
+                            ${job.bullets.map(b => `<li contenteditable="true">${b}</li>`).join('')}
+                        </ul>
+                    `;
+                    expSection.appendChild(jobDiv);
+                });
+
+                // 4. Personal Details
+                const detailGrid = document.querySelector('.detail-grid');
+                detailGrid.innerHTML = `
+                    <div class="detail-row" contenteditable="true"><strong>QID NO</strong> : ${cvData.personal.qid || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>QID EXP</strong> : ${cvData.personal.qid_exp || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>DOB</strong> : ${cvData.personal.dob || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>PASS NO</strong> : ${cvData.personal.passport_no || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>PASS EXP</strong> : ${cvData.personal.passport_exp || 'N/A'}</div>
+                `;
+
+                // 5. Sidebar: Skills
+                const skillsList = document.querySelector('.skills-list');
+                if (skillsList) {
+                    skillsList.innerHTML = cvData.ai_content.skills.slice(0, 6).map(skill =>
+                        `<li contenteditable="true">${skill}</li>`
+                    ).join('');
+                }
+
+                // 6. Sidebar: Languages
+                const languagesList = document.querySelector('.languages-list');
+                if (cvData.languages && cvData.languages.length > 0) {
+                    languagesList.innerHTML = cvData.languages.map(lang =>
+                        `<li contenteditable="true">${lang}</li>`
+                    ).join('');
+                } else {
+                    languagesList.innerHTML = `<li contenteditable="true">English</li>`; // Fallback
+                }
+
+                // 7. Sidebar: Education
+                const eduList = document.querySelector('.education-list');
+                if (cvData.education && cvData.education.length > 0) {
+                    eduList.innerHTML = cvData.education.map(edu =>
+                        `<li contenteditable="true">
+                            <div><strong>${edu.degree}</strong></div>
+                            <div style="font-size: 0.9em; opacity: 0.9">${edu.school}</div>
+                            <div style="font-size: 0.8em; opacity: 0.7">${edu.country}</div>
+                        </li>`
+                    ).join('');
+                } else {
+                    eduList.innerHTML = `<li contenteditable="true">Values not found</li>`;
+                }
+            }
+
+            // Controls
+            setTimeout(attachDynamicControls, 100);
+
+            // Click handling for Add/Remove
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.add-item-btn')) {
+                    const current = e.target.closest('.editable-container');
+                    if (current) {
+                        const newItem = current.cloneNode(true);
+                        // Reset text
+                        if (newItem.tagName === 'LI') {
+                            newItem.innerHTML = 'New Item';
+                        } else if (newItem.classList.contains('detail-row')) {
+                            newItem.innerHTML = '<strong>New Field</strong> : Value';
+                        } else {
+                            newItem.innerText = 'New Info';
+                        }
+
+                        current.after(newItem);
+                        newItem.querySelector('.edit-controls')?.remove();
+                        addControlsToElement(newItem);
+                    }
+                }
+
+                if (e.target.closest('.remove-item-btn')) {
+                    const current = e.target.closest('.editable-container');
+                    if (current && confirm('Remove this item?')) current.remove();
+                }
+            });
+        });
+
+
+        // --- Toolbar Functions ---
+
+        let currentFontSize = 14;
+
+        function adjustFontSize(step) {
+            currentFontSize += step;
+            if (currentFontSize < 10) currentFontSize = 10;
+            if (currentFontSize > 24) currentFontSize = 24;
+            document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+        }
+
+        function adjustSpacing(step) {
+            const root = document.documentElement;
+            const style = getComputedStyle(root);
+            let current = parseInt(style.getPropertyValue('--section-spacing')) || 20;
+            let newSpacing = current + step;
+            if (newSpacing < 5) newSpacing = 5;
+            if (newSpacing > 100) newSpacing = 100;
+
+            root.style.setProperty('--section-spacing', newSpacing + 'px');
+        }
+
+
+
+        function printCV() {
+            window.print();
+        }
+
+        function downloadPDF() {
+            // Hide controls
+            const controls = document.querySelectorAll('.pdf-toolbar, .edit-controls, .action-btn, .edit-btn');
+            const displayStates = [];
+            controls.forEach(c => {
+                displayStates.push({ el: c, val: c.style.display });
+                c.style.display = 'none';
+            });
+
+            const element = document.querySelector('.page');
+            document.body.classList.add('generating-pdf');
+
+            // Save state
+            const originalHeight = element.style.height;
+            const originalOverflow = element.style.overflow;
+            const originalTransform = element.style.transform;
+            const originalMargin = element.style.margin;
+
+            // Strict A4
+            element.style.transform = 'none';
+            element.style.margin = '0';
+            element.style.padding = '40px'; // Restore padding if needed or keep original
+            // Note: Classic page has padding: 40px in CSS. If we remove margin, we keep padding.
+
+            element.style.setProperty('width', '210mm', 'important');
+            element.style.setProperty('height', '297mm', 'important');
+            element.style.setProperty('min-height', '297mm', 'important');
+            element.style.overflow = 'hidden';
+            element.style.borderRadius = '0';
+
+            window.scrollTo(0, 0);
+
+            const opt = {
+                margin: 0,
+                filename: 'My_CV.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0,
+                    windowWidth: 794 // Force A4 width in px (approx) to prevent responsive layout shifts
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('generating-pdf');
+
+                // Restore controls
+                controls.forEach((c, i) => {
+                    c.style.display = displayStates[i].val;
+                });
+
+                // Restore state
+                element.style.height = originalHeight;
+                element.style.overflow = originalOverflow;
+                element.style.margin = originalMargin;
+                element.style.transform = originalTransform;
+            });
+        }
+
+        // Call init in DOMContentLoaded
+    </script>
+</body>
+
+</html>

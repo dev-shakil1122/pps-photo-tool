@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <title>Quotation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="modern.css">
+</head>
+
+<body>
+
+    <!-- Toolbar -->
+    <div class="pdf-toolbar">
+        <label style="color: white; margin-right: 15px; display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="toggleTotals" onchange="toggleTotals(this.checked)" style="margin-right: 5px;">
+            Show Totals
+        </label>
+        <button class="action-btn" onclick="adjustAppearance('font', 1)" title="Increase Font"><i
+                class="fas fa-font"></i>+</button>
+        <button class="action-btn" onclick="adjustAppearance('font', -1)" title="Decrease Font"><i
+                class="fas fa-font"></i>-</button>
+        <button class="action-btn" onclick="adjustAppearance('row', 1)" title="Increase Row Height"><i
+                class="fas fa-arrows-alt-v"></i>+</button>
+        <button class="action-btn" onclick="adjustAppearance('row', -1)" title="Decrease Row Height"><i
+                class="fas fa-arrows-alt-v"></i>-</button>
+
+        <button class="action-btn" onclick="adjustAppearance('padTop', 10)" title="Increase Top Margin"><i
+                class="fas fa-arrow-up"></i>+</button>
+        <button class="action-btn" onclick="adjustAppearance('padTop', -10)" title="Decrease Top Margin"><i
+                class="fas fa-arrow-up"></i>-</button>
+
+        <button class="action-btn" onclick="document.getElementById('letterheadUpload').click()"
+            title="Change Letterhead"><i class="fas fa-plus"></i> Letterhead</button>
+        <button class="action-btn" onclick="removeLetterhead()" title="Remove Letterhead" style="color: #ff6b6b;"><i
+                class="fas fa-trash-alt"></i> Letterhead</button>
+
+        <!-- Multiple Images -->
+        <button class="action-btn" onclick="document.getElementById('imageUpload').click()" title="Add Image">
+            <i class="fas fa-images"></i> Seal/Sign
+        </button>
+        <button class="action-btn" onclick="removeSelectedImage()" title="Remove Selected Image"
+            style="color: #ff6b6b;">
+            <i class="fas fa-trash"></i> Seal/Sign
+        </button>
+
+        <button class="action-btn" onclick="window.print()" title="Print"><i class="fas fa-print"></i></button>
+        <button class="action-btn" onclick="downloadPDF()" title="Download PDF"><i class="fas fa-file-pdf"></i></button>
+        <!-- Hidden Upload for Toolbar -->
+        <input type="file" id="letterheadUpload" accept="image/*" style="display: none;"
+            onchange="updateLetterhead(this)">
+        <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+    </div>
+
+    <div class="page" id="quotePage">
+        <div class="content-wrapper" id="contentWrapper">
+            <!-- Quotation Title -->
+            <div
+                style="text-align: center; font-size: 24px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; text-transform: uppercase;">
+                QUOTATION</div>
+
+            <!-- Header -->
+            <div class="header-row">
+                <div id="refNo" class="ref-date-item"><span class="addr-text" contenteditable="true">Ref:
+                        STCS/2026/01/0025</span></div>
+                <div id="quoteDate" class="ref-date-item"><span class="addr-text" contenteditable="true">Date:
+                        10-01-2026</span></div>
+            </div>
+
+            <div class="address-block">
+                <div class="address-line">
+                    <div class="row-controls" style="left: -35px; top: 0;" contenteditable="false">
+                        <button class="control-btn btn-add" onclick="addAddressLine(this)">+</button>
+                        <button class="control-btn btn-rem" onclick="removeAddressLine(this)">-</button>
+                    </div>
+                    <strong>To,</strong>
+                </div>
+                <div class="address-line" id="attnName" style="font-weight: bold;">
+                    <div class="row-controls" style="top: 0;" contenteditable="false">
+                        <button class="control-btn btn-add" onclick="addAddressLine(this)">+</button>
+                        <button class="control-btn btn-rem" onclick="removeAddressLine(this)">-</button>
+                    </div>
+                    <div class="addr-text" contenteditable="true">Name</div>
+                </div>
+                <div class="address-line" id="attnCompany" style="font-weight: bold;">
+                    <div class="row-controls" style="top: 0;" contenteditable="false">
+                        <button class="control-btn btn-add" onclick="addAddressLine(this)">+</button>
+                        <button class="control-btn btn-rem" onclick="removeAddressLine(this)">-</button>
+                    </div>
+                    <div class="addr-text" contenteditable="true">Company Name</div>
+                </div>
+                <div class="address-line" id="attnLocation">
+                    <div class="row-controls" style="top: 0;" contenteditable="false">
+                        <button class="control-btn btn-add" onclick="addAddressLine(this)">+</button>
+                        <button class="control-btn btn-rem" onclick="removeAddressLine(this)">-</button>
+                    </div>
+                    <div class="addr-text" contenteditable="true">Doha, Qatar</div>
+                </div>
+            </div>
+
+            <!-- Subject -->
+            <div class="subject-block">
+                <div class="subject-line" id="subjectLine" contenteditable="true">
+                </div>
+                <!-- Intro text moved to start of this block if preferred, but usually subject is header-like -->
+            </div>
+
+            <!-- Project (Optional) -->
+            <div id="projectLine" class="project-line" style="display: none;" contenteditable="true"></div>
+
+            <div class="intro-text" id="introText" contenteditable="true">
+                <!-- Intro body text -->
+            </div>
+
+            <!-- Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-sn">S#</th>
+                        <th class="col-desc">Description</th>
+                        <th class="col-unit">Unit</th> <!-- Added Unit col as interpreted from plan -->
+                        <th class="col-qty">Qty</th>
+                        <th class="col-rate">Rate (QAR)</th>
+                        <th class="col-total">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Rows injected via JS -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" style="text-align: right; font-weight: bold;">Grand Total</td>
+                        <td id="grandTotal" style="font-weight: bold;">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Terms -->
+            <div class="terms-section">
+                <div class="terms-bg">Terms & Conditions:</div>
+                <!-- Manpower Terms -->
+                <ul class="terms-list" id="termsList">
+                    <!-- Terms injected via JS -->
+                </ul>
+            </div>
+
+            <div class="closing-text" contenteditable="true">
+                We trust above meets your approval. Kindly send us your Purchase Order at the earliest to proceed.
+                <br><br>
+                Best Regards,
+            </div>
+
+            <div class="signature-line" contenteditable="true">
+                <div id="senderName" style="font-weight: bold; font-size: 14px;">Signatory Name</div>
+                <div id="senderCompany"></div>
+                <div id="senderPOBox"></div>
+                <div id="senderContact"></div>
+            </div>
+
+        </div>
+
+    </div> <!-- End Content Wrapper -->
+
+    </div>
+
+    <script>
+        // Totals Toggle Listener
+        const toggleBtn = document.getElementById('toggleTotals');
+        if (toggleBtn) {
+            // Ensure initial state matches data if loaded
+            // toggleTotals(toggleBtn.checked); // logic handled in data load, but listener needed
+            toggleBtn.addEventListener('change', function (e) {
+                toggleTotals(e.target.checked);
+            });
+        }
+
+
+        // Load Data
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = JSON.parse(localStorage.getItem('quoteData'));
+            if (data) {
+                const controls = `<div class="row-controls" style="left: -35px; top: 0;" contenteditable="false">
+                    <button class="control-btn btn-add" onclick="addAddressLine(this)">+</button>
+                    <button class="control-btn btn-rem" onclick="removeAddressLine(this)">-</button>
+                </div>`;
+
+                document.getElementById('refNo').innerHTML = `<span class="addr-text" contenteditable="true">Ref: ${data.ref_no || ''}</span>`;
+                document.getElementById('quoteDate').innerHTML = `<span class="addr-text" contenteditable="true">Date: ${data.date || ''}</span>`;
+
+
+                document.getElementById('refNo').innerText = `Ref: ${data.ref_no || ''}`;
+                document.getElementById('quoteDate').innerText = `Date: ${data.date || ''}`;
+                const hasAttn = (data.attn.name && data.attn.name.trim()) ||
+                    (data.attn.company && data.attn.company.trim()) ||
+                    (data.attn.location && data.attn.location.trim()) ||
+                    (data.attn.po_box && data.attn.po_box.trim());
+
+                if (!hasAttn) {
+                    const addrBlock = document.querySelector('.address-block');
+                    if (addrBlock) addrBlock.style.display = 'none';
+                } else {
+                    document.getElementById('attnName').innerHTML = controls + `<div class="addr-text" contenteditable="true">${data.attn.name || ''}</div>`;
+
+                    // Remove Company if empty
+                    if (data.attn.company && data.attn.company.trim()) {
+                        document.getElementById('attnCompany').innerHTML = controls + `<div class="addr-text" contenteditable="true">${data.attn.company}</div>`;
+                    } else {
+                        const el = document.getElementById('attnCompany');
+                        if (el) el.remove();
+                    }
+
+                    // Remove Location if empty
+                    const locText = `${data.attn.po_box ? 'PO Box ' + data.attn.po_box + ', ' : ''}${data.attn.location || ''}`;
+
+                    // Phone
+                    if (data.attn.phone) {
+                        const phoneDiv = document.createElement('div');
+                        phoneDiv.className = 'address-line';
+                        // contentEditable removed from parent
+                        phoneDiv.innerHTML = controls + `<div class="addr-text" contenteditable="true">Mobile: ${data.attn.phone}</div>`;
+                        document.querySelector('.address-block').appendChild(phoneDiv);
+                    }
+
+                    // Email
+                    if (data.attn.email) {
+                        const emailDiv = document.createElement('div');
+                        emailDiv.className = 'address-line';
+                        // contentEditable removed from parent
+                        emailDiv.innerHTML = controls + `<div class="addr-text" contenteditable="true">Email: ${data.attn.email}</div>`;
+                        document.querySelector('.address-block').appendChild(emailDiv);
+                    }
+
+                    if (locText.trim()) {
+                        const locEl = document.getElementById('attnLocation');
+                        locEl.innerHTML = controls + `<div class="addr-text" contenteditable="true">${locText}</div>`;
+                        // Move to end (after phone/email)
+                        document.querySelector('.address-block').appendChild(locEl);
+                    } else {
+                        const el = document.getElementById('attnLocation');
+                        if (el) el.remove();
+                    }
+                }
+
+                // Project Details
+                if (data.project && (data.project.name || data.project.location)) {
+                    document.getElementById('projectLine').style.display = 'block';
+                    document.getElementById('projectLine').innerText = `Project: ${data.project.name || ''} ${data.project.location ? '- ' + data.project.location : ''}`;
+                }
+
+                if (data.ai_text.subject) document.getElementById('subjectLine').innerHTML = data.ai_text.subject;
+                if (data.ai_text.intro) document.getElementById('introText').innerHTML = data.ai_text.intro;
+
+                // Populate Sender Details
+                if (data.from) {
+                    if (data.from.name) document.getElementById('senderName').innerText = data.from.name;
+                    if (data.from.company) document.getElementById('senderCompany').innerText = data.from.company;
+
+                    const poText = data.from.po_box ? `PO Box: ${data.from.po_box}` : '';
+                    const locText = data.from.location ? data.from.location : '';
+                    document.getElementById('senderPOBox').innerText = [poText, locText].filter(Boolean).join(', ');
+
+                    const contactParts = [];
+                    if (data.from.mobile) contactParts.push(`Mob: ${data.from.mobile}`);
+                    if (data.from.email) contactParts.push(`Email: ${data.from.email}`);
+                    document.getElementById('senderContact').innerText = contactParts.join(' | ');
+                }
+
+                // Generate Terms from Config
+                const termsList = document.getElementById('termsList');
+                termsList.innerHTML = '';
+                const terms = [];
+                const config = data.terms_config || {};
+                const category = data.category || 'manpower';
+
+                if (category === 'services') {
+                    // Services Terms Construction
+                    if (config.tools) terms.push(`Tools and Materials: Provided by the ${config.tools}.`);
+                    if (config.delivery) terms.push(`Delivery/Execution: ${config.delivery}.`);
+                    if (config.payment) terms.push(`Payment Terms: ${config.payment}.`);
+                } else {
+                    // Manpower Terms Construction
+                    if (config.fat) terms.push(`Food, Accommodation & Transportation: Provided by the ${config.fat}.`);
+                    if (config.hours) terms.push(`Working Hours: ${config.hours}.`);
+                    if (config.overtime) terms.push(`Overtime: ${config.overtime}.`);
+                    if (config.invoice) terms.push(`Invoice Submission: ${config.invoice}.`);
+                    if (config.payment) terms.push(`Payment Terms: ${config.payment}.`);
+                    if (config.mobilization) terms.push(`Mobilization: ${config.mobilization}.`);
+                    if (config.validity) terms.push(`Quotation Validity: ${config.validity}.`);
+                }
+
+                // Always add Qatar Labour Law
+                terms.push("All Other Terms and Conditions as per Qatar Labour Law.");
+
+                terms.forEach(term => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="term-text" contenteditable="true">${term}</span>
+                    <div class="li-controls" contenteditable="false">
+                        <button class="control-btn btn-add" onclick="addTerm(this)">+</button>
+                        <button class="control-btn btn-rem" onclick="removeTerm(this)">-</button>
+                    </div>`;
+                    termsList.appendChild(li);
+                });
+
+                // Handle Totals Visibility
+                const showTotals = data.hasOwnProperty('show_totals') ? data.show_totals : true;
+                document.getElementById('toggleTotals').checked = showTotals;
+                toggleTotals(showTotals);
+
+                // Populate Table
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                if (data.items && data.items.length > 0) {
+                    data.items.forEach((item, index) => {
+                        addRow(item, index + 1);
+                    });
+                } else {
+                    addRow({}, 1); // Empty row
+                }
+
+                // Load Letterhead
+                if (data.letterhead) {
+                    applyLetterhead(data.letterhead);
+                }
+
+                updateCalculations();
+            }
+        });
+
+        function applyLetterhead(base64Img) {
+            const page = document.getElementById('quotePage');
+            page.style.backgroundImage = `url('${base64Img}')`;
+            document.body.classList.add('has-letterhead');
+        }
+
+        function updateLetterhead(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64 = e.target.result;
+                    applyLetterhead(base64);
+                    // Update LocalStorage
+                    const data = JSON.parse(localStorage.getItem('quoteData'));
+                    data.letterhead = base64;
+                    localStorage.setItem('quoteData', JSON.stringify(data));
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeLetterhead() {
+            const page = document.getElementById('quotePage');
+            page.style.backgroundImage = 'none';
+            document.body.classList.remove('has-letterhead');
+
+            // Update LocalStorage
+            const data = JSON.parse(localStorage.getItem('quoteData'));
+            if (data) {
+                data.letterhead = null;
+                localStorage.setItem('quoteData', JSON.stringify(data));
+            }
+        }
+
+        function addRow(item = {}, index) {
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="position: relative;">
+                    ${index}
+                    <div class="row-controls">
+                        <button class="control-btn btn-add" onclick="addNewRow(this)" title="Add Row">+</button>
+                        <button class="control-btn btn-rem" onclick="removeRow(this)" title="Remove Row">-</button>
+                    </div>
+                </td>
+                <td contenteditable="true" class="desc-cell">${item.desc || ''}</td>
+                <td contenteditable="true">${item.unit || ''}</td>
+                <td contenteditable="true" class="qty-cell" oninput="calculateRow(this)">${item.qty || ''}</td>
+                <td contenteditable="true" class="rate-cell" oninput="calculateRow(this)">${item.rate ? parseFloat(item.rate).toFixed(2) : ''}</td>
+                <td class="total-cell">0.00</td>
+            `;
+            tbody.appendChild(tr);
+            // Initial calc
+            const rowQty = parseFloat(item.qty) || 0;
+            const rowRate = parseFloat(item.rate) || 0;
+            tr.querySelector('.total-cell').innerText = (rowQty * rowRate).toFixed(2);
+        }
+
+        function calculateRow(el) {
+            const tr = el.closest('tr');
+            const qty = parseFloat(tr.querySelector('.qty-cell').innerText) || 0;
+            const rate = parseFloat(tr.querySelector('.rate-cell').innerText) || 0;
+            const total = qty * rate;
+            tr.querySelector('.total-cell').innerText = total.toFixed(2);
+            updateGrandTotal();
+        }
+
+        function updateGrandTotal() {
+            let sum = 0;
+            document.querySelectorAll('.total-cell').forEach(cell => {
+                sum += parseFloat(cell.innerText) || 0;
+            });
+            document.getElementById('grandTotal').innerText = sum.toFixed(2);
+        }
+
+        function updateCalculations() {
+            document.querySelectorAll('tr').forEach(tr => {
+                if (tr.querySelector('.qty-cell')) {
+                    const qty = parseFloat(tr.querySelector('.qty-cell').innerText) || 0;
+                    const rate = parseFloat(tr.querySelector('.rate-cell').innerText) || 0;
+                    tr.querySelector('.total-cell').innerText = (qty * rate).toFixed(2);
+                }
+            });
+            updateGrandTotal();
+        }
+
+        // Dynamic Row Actions
+        window.addNewRow = function (btn) {
+            const tr = btn.closest('tr');
+            const newTr = tr.cloneNode(true);
+            newTr.querySelectorAll('td[contenteditable]').forEach(td => td.innerText = '');
+            newTr.querySelector('.total-cell').innerText = '0.00';
+            // Insert after current
+            tr.parentNode.insertBefore(newTr, tr.nextSibling);
+            renumberRows();
+        };
+
+        window.removeRow = function (btn) {
+            const tr = btn.closest('tr');
+            if (document.querySelectorAll('#tableBody tr').length > 1) {
+                tr.remove();
+                renumberRows();
+                updateGrandTotal();
+            }
+        };
+
+        function renumberRows() {
+            document.querySelectorAll('#tableBody tr').forEach((tr, i) => {
+                tr.cells[0].childNodes[0].nodeValue = i + 1 + " "; // Keep the text node, ignore div
+            });
+        }
+
+        // Dynamic Terms Actions
+        // Dynamic Terms Actions
+        window.addTerm = function (btn) {
+            const li = btn.closest('li');
+            const newLi = li.cloneNode(true);
+            const textSpan = newLi.querySelector('.term-text');
+            if (textSpan) textSpan.innerText = "New Condition";
+            li.parentNode.insertBefore(newLi, li.nextSibling);
+        };
+
+        window.removeTerm = function (btn) {
+            const li = btn.closest('li');
+            // Check count of siblings in the same list
+            if (li.parentNode.children.length > 1) {
+                li.remove();
+            }
+        };
+
+        // Address Line Actions
+        window.addAddressLine = function (btn) {
+            const div = btn.closest('.address-line');
+            const newDiv = div.cloneNode(true);
+            const textEl = newDiv.querySelector('.addr-text');
+            if (textEl) textEl.innerText = "New Line";
+            div.parentNode.insertBefore(newDiv, div.nextSibling);
+        };
+
+        window.removeAddressLine = function (btn) {
+            const div = btn.closest('.address-line');
+            // Allow removing any line, but maybe keep at least one? User said "add or delete", so standard logic:
+            if (document.querySelectorAll('.address-line').length > 1) {
+                div.remove();
+            }
+        };
+
+        function toggleTotals(show) {
+            if (show) {
+                document.body.classList.remove('no-totals');
+            } else {
+                document.body.classList.add('no-totals');
+            }
+        }
+
+        // Appearance Controls
+        let currentFontSize = 14;
+        let currentRowPadding = 6;
+        let currentPadTop = 80;
+        let currentPadBtm = 0;
+
+        function adjustAppearance(type, step) {
+            if (type === 'font') {
+                currentFontSize += step;
+                if (currentFontSize < 8) currentFontSize = 8; // Min limit
+                document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+            } else if (type === 'row') {
+                currentRowPadding += step;
+                if (currentRowPadding < 2) currentRowPadding = 2; // Min limit
+                document.documentElement.style.setProperty('--row-padding', currentRowPadding + 'px');
+            } else if (type === 'padTop') {
+                currentPadTop += step;
+                if (currentPadTop < 0) currentPadTop = 0;
+                document.documentElement.style.setProperty('--pad-top', currentPadTop + 'px');
+            } else if (type === 'padBtm') {
+                currentPadBtm += step;
+                if (currentPadBtm < 0) currentPadBtm = 0;
+                if (currentPadBtm < 0) currentPadBtm = 0;
+                document.documentElement.style.setProperty('--pad-bottom', currentPadBtm + 'px');
+            }
+            // saveSettings(); // Disabled: Reset on reload
+        }
+
+        // Export
+        function downloadPDF() {
+            // Hide all controls explicitly
+            const controls = document.querySelectorAll('.resize-handle, .img-resize-handle, .row-controls, .li-controls, .action-btn');
+            const displayStates = [];
+            controls.forEach(c => {
+                displayStates.push({ el: c, val: c.style.display });
+                c.style.display = 'none';
+            });
+
+            const element = document.querySelector('.page');
+            document.body.classList.add('generating-pdf');
+
+            // Save original state
+            const originalTransform = element.style.transform;
+            const originalMargin = element.style.margin;
+            const originalMarginLeft = element.style.marginLeft;
+            const originalMarginBottom = element.style.marginBottom;
+            const originalHeight = element.style.height;
+            const originalOverflow = element.style.overflow;
+            // Modern template specific
+            const originalPadding = element.style.padding;
+
+            // Force strict A4 state
+            element.style.transform = 'none';
+            element.style.margin = '0';
+            element.style.marginLeft = '0';
+            element.style.marginBottom = '0';
+            element.style.marginBottom = '0';
+            element.style.setProperty('min-height', '0', 'important');
+            element.style.setProperty('height', '290mm', 'important');
+            element.style.overflow = 'hidden';
+
+            window.scrollTo(0, 0);
+
+            const opt = {
+                margin: 0,
+                filename: 'Quotation_Modern.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('generating-pdf');
+
+                // Restore controls
+                controls.forEach((c, i) => {
+                    // Check if it was inline hidden or just rely on CSS?
+                    // Restore original inline style
+                    c.style.display = displayStates[i].val;
+                });
+
+                // Restore state
+                element.style.height = originalHeight;
+                element.style.overflow = originalOverflow;
+                element.style.margin = originalMargin;
+                element.style.padding = originalPadding;
+                element.style.transform = originalTransform;
+                element.style.marginLeft = originalMarginLeft;
+                element.style.marginBottom = originalMarginBottom;
+
+                element.style.transform = originalTransform;
+                element.style.marginLeft = originalMarginLeft;
+                element.style.marginBottom = originalMarginBottom;
+            });
+        }
+
+        // ==========================================
+        // Column Resizing Logic
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for data load
+            setTimeout(initResizeHandles, 100);
+        });
+
+        function initResizeHandles() {
+            const cols = document.querySelectorAll('th');
+            cols.forEach(col => {
+                if (col.querySelector('.resize-handle')) return;
+
+                const handle = document.createElement('div');
+                handle.className = 'resize-handle';
+                col.appendChild(handle);
+
+                setResizable(col, handle);
+            });
+        }
+
+        function setResizable(col, handle) {
+            let startX, startWidth, nextCol, nextStartWidth;
+
+            handle.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                nextCol = col.nextElementSibling;
+                if (!nextCol) return;
+
+                startX = e.pageX;
+                startWidth = col.offsetWidth;
+                nextStartWidth = nextCol.offsetWidth;
+
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                const diffX = e.pageX - startX;
+                const newW = startWidth + diffX;
+                const nextNewW = nextStartWidth - diffX;
+
+                if (newW > 30 && nextNewW > 30) {
+                    col.style.width = newW + 'px';
+                    nextCol.style.width = nextNewW + 'px';
+                }
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.body.style.cursor = 'default';
+                document.body.style.userSelect = '';
+            }
+        }
+
+        // ==========================================
+        // Image Handling Logic
+        // ==========================================
+        let activeImageId = null;
+
+        // Load Images on Startup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Global click listener for deselecting images
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.floating-image') && !e.target.classList.contains('action-btn')) {
+                    setActiveImage(null);
+                }
+            });
+
+            const savedImages = JSON.parse(localStorage.getItem('quoteImages'));
+            if (savedImages && Array.isArray(savedImages)) {
+                savedImages.forEach(img => {
+                    addImageElement(img.id, img.src, img.x, img.y, img.w, img.h);
+                });
+            }
+        });
+
+        window.handleImageUpload = function (input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const id = Date.now().toString();
+                    addImageElement(id, e.target.result);
+                    saveImagesState();
+                };
+                reader.readAsDataURL(input.files[0]);
+                input.value = '';
+            }
+        };
+
+        function addImageElement(id, src, x = 50, y = 500, w = 150, h = 150) {
+            const container = document.createElement('div');
+            container.className = 'floating-image';
+            container.id = id;
+            container.style.left = x + 'px';
+            container.style.top = y + 'px';
+            container.style.width = w + 'px';
+            container.style.height = h + 'px';
+
+            container.addEventListener('mousedown', function (e) {
+                if (e.target.classList.contains('img-resize-handle')) return;
+                setActiveImage(id);
+            });
+
+            const img = document.createElement('img');
+            img.src = src;
+            container.appendChild(img);
+
+            ['se'].forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `img-resize-handle handle-${pos}`;
+                container.appendChild(handle);
+            });
+
+            document.getElementById('quotePage').appendChild(container); // Correct ID for modern template
+            makeDraggable(container);
+            makeResizable(container);
+            setActiveImage(id);
+        }
+
+        function setActiveImage(id) {
+            document.querySelectorAll('.floating-image').forEach(el => el.classList.remove('active'));
+            activeImageId = id;
+            if (id) document.getElementById(id)?.classList.add('active');
+        }
+
+        window.removeSelectedImage = function () {
+            if (activeImageId) {
+                document.getElementById(activeImageId)?.remove();
+                activeImageId = null;
+                saveImagesState();
+            }
+        };
+
+        function saveImagesState() {
+            const images = [];
+            document.querySelectorAll('.floating-image').forEach(el => {
+                images.push({
+                    id: el.id,
+                    src: el.querySelector('img').src,
+                    x: parseInt(el.style.left),
+                    y: parseInt(el.style.top),
+                    w: parseInt(el.style.width),
+                    h: parseInt(el.style.height)
+                });
+            });
+            localStorage.setItem('quoteImages', JSON.stringify(images));
+        }
+
+        function makeDraggable(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elmnt.addEventListener('mousedown', dragMouseDown);
+            elmnt.addEventListener('touchstart', dragMouseDown, { passive: false });
+
+            function dragMouseDown(e) {
+                if (e.target.classList.contains('img-resize-handle')) return;
+
+                pos3 = e.clientX || e.touches[0].clientX;
+                pos4 = e.clientY || e.touches[0].clientY;
+
+                document.addEventListener('mouseup', closeDragElement);
+                document.addEventListener('touchend', closeDragElement);
+                document.addEventListener('mousemove', elementDrag);
+                document.addEventListener('touchmove', elementDrag, { passive: false });
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                pos1 = pos3 - clientX;
+                pos2 = pos4 - clientY;
+                pos3 = clientX;
+                pos4 = clientY;
+
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.removeEventListener('mouseup', closeDragElement);
+                document.removeEventListener('touchend', closeDragElement);
+                document.removeEventListener('mousemove', elementDrag);
+                document.removeEventListener('touchmove', elementDrag);
+                saveImagesState();
+            }
+        }
+
+        function makeResizable(elmnt) {
+            const handles = elmnt.querySelectorAll('.img-resize-handle'); // Note class name difference in Quotation Modern
+            handles.forEach(handle => {
+                handle.addEventListener('mousedown', initResize);
+                handle.addEventListener('touchstart', initResize, { passive: false });
+
+                function initResize(e) {
+                    if (e.type === 'mousedown') {
+                        e.preventDefault(); e.stopPropagation();
+                    }
+
+                    const startX = e.clientX || e.touches[0].clientX;
+                    const startWidth = parseInt(document.defaultView.getComputedStyle(elmnt).width, 10);
+                    const startHeight = parseInt(document.defaultView.getComputedStyle(elmnt).height, 10);
+                    const aspectRatio = startWidth / startHeight;
+
+                    function doDrag(e) {
+                        if (e.type === 'touchmove') e.preventDefault();
+                        const clientX = e.clientX || e.touches[0].clientX;
+
+                        const dx = clientX - startX;
+                        const newWidth = startWidth + dx;
+                        if (newWidth > 20) {
+                            elmnt.style.width = newWidth + 'px';
+                            elmnt.style.height = (newWidth / aspectRatio) + 'px';
+                        }
+                    }
+
+                    function stopDrag() {
+                        document.removeEventListener('mousemove', doDrag);
+                        document.removeEventListener('touchmove', doDrag);
+                        document.removeEventListener('mouseup', stopDrag);
+                        document.removeEventListener('touchend', stopDrag);
+                        saveImagesState();
+                    }
+
+                    document.addEventListener('mousemove', doDrag);
+                    document.addEventListener('touchmove', doDrag, { passive: false });
+                    document.addEventListener('mouseup', stopDrag);
+                    document.addEventListener('touchend', stopDrag);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
