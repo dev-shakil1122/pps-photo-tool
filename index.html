@@ -7,6 +7,14 @@
     <title>Business Tools Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase Auth Protection -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="auth.js"></script>
+    <script>checkAuth(false); // Redirect to login if not authenticated</script>
+
     <style>
         :root {
             --primary: #2563eb;
@@ -144,6 +152,12 @@
 
     <div class="container">
         <header>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <button onclick="logout()"
+                    style="background: none; border: 1px solid #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
             <h1>Application Dashboard</h1>
             <p class="subtitle">Select a tool to get started</p>
         </header>
