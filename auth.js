@@ -65,11 +65,18 @@ async function getUserApiKey() {
 
     if (!user) throw new Error("User not logged in. Please reload or login again.");
 
-    // 1. Try to get user-specific key
+    // 1. Check Local Storage (Persistent)
+    const cacheKey = `fal_key_${user.email}`;
+    const cachedKey = localStorage.getItem(cacheKey);
+    if (cachedKey) return cachedKey;
+
+    // 2. Try to get user-specific key
     const userDoc = await db.collection('users').doc(user.email).get();
 
     if (userDoc.exists && userDoc.data().fal_key) {
-        return userDoc.data().fal_key;
+        const key = userDoc.data().fal_key;
+        localStorage.setItem(cacheKey, key); // Save permanently
+        return key;
     }
 
     throw new Error(`No API Key found for user: ${user.email}. Please verify Firestore Database setup.`);
