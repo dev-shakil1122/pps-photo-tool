@@ -741,6 +741,9 @@
                                                 text: prompt
                                             }]
                                         }],
+                                        generationConfig: {
+                                            responseMimeType: "application/json"
+                                        },
                                         safetySettings: [{
                                             category: "HARM_CATEGORY_HARASSMENT",
                                             threshold: "BLOCK_ONLY_HIGH"
@@ -800,9 +803,15 @@
                     let responseText = candidate.content.parts[0].text;
 
                     // Clean code blocks if present
-                    responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
 
-                    const aiResult = JSON.parse(responseText);
+                    let aiResult;
+                    try {
+                        aiResult = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('Raw AI Response:', responseText);
+                        throw new Error("AI returned invalid data format. It said: '" + responseText.substring(0, 50) + "...' Please ensure you provide enough details for the AI to generate the CV.");
+                    }
 
                     // 3. Merge AI Data
                     cvData.ai_content.summary = aiResult.summary;
