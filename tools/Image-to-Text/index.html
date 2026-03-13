@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Text Converter (OCR)</title>
+
+    <!-- Global Firebase Auth (Consistent with project) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../../auth.js"></script>
+
+    <!-- Tesseract.js for OCR -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Image to Text Converter</h1>
+            <p>Extract text from images locally using AI</p>
+        </div>
+
+        <div class="content">
+            <!-- Upload Section -->
+            <div class="section upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="upload-text">Click to Upload or Drag & Drop Image</div>
+                    <div class="upload-subtext">Supports PNG, JPG, BMP, WebP</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- Preview & Controls -->
+            <div class="section preview-section" id="previewSection" style="display: none;">
+
+                <!-- NEW: Interactive Wrapper -->
+                <div class="interactive-container" id="interactiveContainer">
+                    <img id="previewImage" alt="Preview" class="source-image">
+                    <div id="textLayer" class="text-layer"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-primary" id="convertBtn">
+                        <i class="fas fa-magic"></i> Extract Text
+                    </button>
+                    <button class="btn-secondary" id="clearBtn">
+                        <i class="fas fa-trash-alt"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container" id="progressContainer" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Initializing...</div>
+            </div>
+
+            <!-- Result Section -->
+            <div class="section result-section" id="resultSection" style="display: none;">
+                <div class="result-header">
+                    <h3><i class="fas fa-file-alt"></i> Extracted Text</h3>
+                    <button class="btn-sm" id="copyBtn"><i class="fas fa-copy"></i> Copy Text</button>
+                </div>
+                <textarea id="resultText" readonly placeholder="Extracted text will appear here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

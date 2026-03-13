@@ -234,6 +234,15 @@ async function generatePassportPhoto() {
 
         const prompt = promptParts.join("\n");
 
+        // --- CREDIT CHECK ---
+        const hasCredit = await checkAndDeductCredit(false); // Check only
+        if (!hasCredit) {
+            showMessage('Insufficient Credits. Please contact admin.', 'error');
+            generateBtn.disabled = true; // Keep disabled
+            loadingSpinner.classList.remove('show');
+            return;
+        }
+
         // FAL AI API Key (Fetch from Database)
         let FAL_KEY;
         try {
@@ -246,7 +255,7 @@ async function generatePassportPhoto() {
         }
 
         // Debug: Log the prompt to verify it's being built
-        console.log("GENERATED PROMPT:", prompt);
+        // console.log("GENERATED PROMPT:", prompt);
 
         // Call FAL AI Direct
         const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
@@ -276,6 +285,10 @@ async function generatePassportPhoto() {
 
         // Handle response from nano-banana/edit model
         if (result.images && result.images.length > 0) {
+
+            // --- DEDUCT CREDIT NOW ---
+            await checkAndDeductCredit(true); // Deduct
+
             generatedImageUrl = result.images[0].url;
             resultImage.src = result.images[0].url;
             resultImage.classList.add('show');
@@ -292,6 +305,8 @@ async function generatePassportPhoto() {
     } finally {
         generateBtn.disabled = false;
         loadingSpinner.classList.remove('show');
+        // Re-check to update UI
+        checkAndDeductCredit(false);
     }
 }
 
@@ -599,3 +614,91 @@ const observer = new MutationObserver(() => {
     if (printPage.classList.contains('active')) fitToScreen();
 });
 if (printPage) observer.observe(printPage, { attributes: true, attributeFilter: ['class'] });
+
+// --- Credit System (Robust + Debugging) ---
+async function checkAndDeductCredit(deduct) {
+    const user = firebase.auth().currentUser;
+    if (!user) return false;
+
+    // console.log("CheckCredit - User:", user.email);
+
+    // Use global 'db' from auth.js
+    const userRef = db.collection('users').doc(user.email);
+    const doc = await userRef.get();
+
+    if (!doc.exists) {
+        // console.log("No user doc found.");
+        // Create user doc if missing
+        await userRef.set({ credits: 0 }, { merge: true });
+        updateCreditUI(0);
+        return false;
+    }
+
+    const data = doc.data();
+    // console.log("Firestore Data:", data);
+
+    // ROBUSTNESS FIX: Handle 'credit' (singular) OR 'credits' (plural)
+    // AND handle String comparisons ("1") vs Numbers (1)
+    let val = data.credits;
+    if (val === undefined) val = data.credit; // check singular
+
+    // Parse Int safely
+    const credits = parseInt(val || 0, 10);
+    // console.log("Parsed Credits:", credits);
+
+    updateCreditUI(credits);
+
+    if (credits < 1) return false;
+
+    if (deduct) {
+        // Determine which field to debit
+        const fieldName = (data.credit !== undefined) ? 'credit' : 'credits';
+        // console.log("Deducting from field:", fieldName);
+
+        // Firestore increment works on numbers. If it's a string in DB, this might fail or cast.
+        // Safer to just set the new value if we know it.
+        await userRef.update({
+            [fieldName]: credits - 1
+        });
+        updateCreditUI(credits - 1);
+    }
+
+    return true;
+}
+
+function updateCreditUI(amount) {
+    const el = document.getElementById('creditDisplay');
+    if (el) {
+        el.innerHTML = `Credits: ${amount}`;
+        if (amount === 0) {
+            el.style.color = '#ff4444'; // Red for empty
+        } else {
+            el.style.color = '#2ecc71'; // Green for credit
+        }
+    }
+}
+
+// Initialize Credit Watcher on Load
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        checkAndDeductCredit(false);
+        // Real-time listener
+        db.collection('users').doc(user.email).onSnapshot(doc => {
+            const data = doc.data();
+
+            // Handle both fields in listener too
+            let val = data?.credits;
+            if (val === undefined) val = data?.credit;
+
+            const credits = parseInt(val || 0, 10);
+            // console.log("Realtime Update:", credits);
+
+            updateCreditUI(credits);
+            if (credits < 1) {
+                if (generateBtn) generateBtn.disabled = true;
+            } else {
+                if (generateBtn && selectedFile) generateBtn.disabled = false;
+            }
+        });
+    }
+});

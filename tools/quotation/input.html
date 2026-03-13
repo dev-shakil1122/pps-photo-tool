@@ -400,9 +400,8 @@
         document.getElementById('date_input').valueAsDate = new Date();
 
         const itemsContainer = document.getElementById('itemsContainer');
-        const GEMINI_API_KEY = 'AIzaSyDkJv0WSfWqcAGuRW9Ne99wTdJj1yvgYxY'; // Force Clean Key
-
-        console.log("API Key loaded:", GEMINI_API_KEY); // Debug Log
+        // API Proxy endpoint
+        const API_ENDPOINT = '/api/generate';
 
         // Item Template function
         function createItemRow(index) {
