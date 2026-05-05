@@ -287,36 +287,41 @@ async function generatePassportPhoto() {
 
         // ── MODE 1: Keep Original Outfit ──────────────────────────────────────
         if (mode === 'keep_original') {
-            prompt = `You are a professional passport photo studio. RECREATE this person as a flawless, high-end passport photo.
+            prompt = `You are a professional passport photo editor AI.
 
-IDENTITY RULE: Keep the EXACT same person — same face structure, features, bone shape. Do NOT alter who this person is.
+Take the provided input image (blurry or clear) and transform it into a high-quality, official passport-size photograph.
 
-MANDATORY IMPROVEMENTS TO APPLY:
+YOUR TASKS:
+1. Detect and center the face properly (straighten head, neck, and shoulders to a natural upright position).
+2. Crop to standard passport size (head centered, proper spacing above head and shoulders visible).
+3. Upscale the image to high resolution while preserving natural facial details.
+4. Fix blur and enhance sharpness without creating artificial artifacts.
+5. Adjust lighting evenly (remove harsh shadows, overexposure, and uneven tones).
+6. Clean the face: remove pimples, acne, minor blemishes, and skin imperfections while keeping a natural look (do NOT over-smooth).
+7. Normalize skin tone and color balance.
+8. Ensure neutral facial expression and natural eye alignment.
+9. Remove background and replace with ${bgDescription}.
+10. Ensure no distortion of facial features.
+11. Keep the person wearing the EXACT SAME clothes and outfit as in the original photo — do NOT change clothing.
 
-FACE RETOUCHING — do every single one of these:
-- Detect and REMOVE all uneven lighting: equalize any dark side, sunlight shadow, or lamp shadow to flat even frontal studio light.
-- Remove ALL shadows from the face — side shadows, chin shadows, forehead shadows.
-- Remove ALL acne, pimples, blemishes, scars, dark spots, skin imperfections.
-- Remove under-eye dark circles and redness.
-- Smooth skin texture naturally (realistic skin — not plastic or over-smoothed).
-- Brighten and even out the skin tone across face and neck.
-- Sharpen the face, eyes, and hair for a crisp high-resolution result.
-- Keep beard, moustache, eyebrows, and all facial hair as they are.
+IMPORTANT RULES:
+- Keep the person's identity 100% accurate (no face alteration).
+- Do NOT beautify excessively or change facial structure.
+- Maintain realistic skin texture.
+- Ensure the output meets general passport standards (front-facing, clear, evenly lit, neutral background).
 
-LIGHTING: Apply flat even frontal ring-light studio lighting. No directional shadows.
-
-OUTFIT: The person wears the EXACT same clothes as in the photo. Reproduce every detail of the original outfit in high quality — same color, style, fabric, collar. Do NOT change the clothing.
-
-BACKGROUND: ${bgDescription}.
-
-FRAMING: Head and upper shoulders only. Face centered. Top of head near frame top. Face height = 70-80% of frame.
-
-QUALITY: Upscale to high resolution. Sharp edges, no blur, no noise, no compression artifacts.
-
-OUTPUT: Single professional studio passport photo. No text, no borders, no watermarks.
-${extraPrompt ? 'EXTRA: ' + extraPrompt : ''}`;
+OUTPUT REQUIREMENTS:
+- High-resolution, sharp, properly aligned passport-size image.
+- Professional studio-like lighting.
+- Ensure eyes are open and clearly visible.
+- Remove glasses glare if present.
+- Maintain formal framing (top of head to upper shoulders visible).
+- Output ratio: 3.5cm x 4.5cm (standard passport size).
+- Ready for official use. No text, no borders, no watermarks.
+${extraPrompt ? '\nADDITIONAL INSTRUCTIONS: ' + extraPrompt : ''}`;
             strength      = 0.88;
             guidanceScale = 15;
+
 
         // ── MODE 2: Change to Suit ─────────────────────────────────────────────
         } else {
