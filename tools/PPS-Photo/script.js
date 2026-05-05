@@ -200,36 +200,98 @@ async function generatePassportPhoto() {
         const bgDescription = bgColor === '#ffffff' ? 'Replace background with plain white' : `Replace background with solid color ${bgColor}`;
 
         // NEW SIMPLIFIED PROMPT - Clear and concise for better AI understanding
+        // const promptParts = [];
+
+        // promptParts.push("Create a professional passport photo from this image.");
+        // promptParts.push("");
+        // promptParts.push("FACE ENHANCEMENT (PRIMARY FOCUS):");
+        // promptParts.push("- Carefully examine the face and remove ALL blemishes, spots, acne, and skin imperfect, do not remove beard ions");
+        // promptParts.push("- Remove dark spots, dark circles, and shadows from the face and neck area");
+        // promptParts.push("- Clear the face completely - make skin look clean and spotless");
+        // promptParts.push("- Brighten the entire face evenly - enhance the facial color to look fresh and healthy");
+        // promptParts.push("- Smooth skin texture naturally while keeping it realistic, not over-processed");
+        // promptParts.push("- Make the face look clear, radiant, and professional");
+        // promptParts.push("");
+        // promptParts.push("Keep the same person and identity exactly. Do not change face shape, facial proportions, or recognizable features.");
+        // promptParts.push("");
+        // promptParts.push("Improve overall image clarity and sharpness. Remove blur completely.");
+        // promptParts.push("");
+        // promptParts.push("Apply clean, even studio lighting with no harsh shadows on the face.");
+        // promptParts.push("");
+        // promptParts.push("Center the f if head and neck not straightace, align it straight, and ensure the person looks directly at the camera.");
+        // promptParts.push("");
+        // promptParts.push(bgDescription + ".");
+        // promptParts.push("");
+        // promptParts.push(outfitInstructions);
+
+        // const extraPrompt = document.getElementById('extraPrompt').value;
+        // if (extraPrompt) {
+        //     promptParts.push("");
+        //     promptParts.push("IMPORTANT USER REQUEST:");
+        //     promptParts.push("- " + extraPrompt);
+        //     promptParts.push("- Follow this instruction strictly while maintaining other requirements.");
+        // }
+
+        // const prompt = promptParts.join("\n");
+
+        // --- PROFESSIONAL PROMPT BUILDER ---
+
         const promptParts = [];
 
-        promptParts.push("Create a professional passport photo from this image.");
+        promptParts.push("Create a professional biometric passport photo from this image.");
         promptParts.push("");
-        promptParts.push("FACE ENHANCEMENT (PRIMARY FOCUS):");
-        promptParts.push("- Carefully examine the face and remove ALL blemishes, spots, acne, and skin imperfect, do not remove beard ions");
-        promptParts.push("- Remove dark spots, dark circles, and shadows from the face and neck area");
-        promptParts.push("- Clear the face completely - make skin look clean and spotless");
-        promptParts.push("- Brighten the entire face evenly - enhance the facial color to look fresh and healthy");
-        promptParts.push("- Smooth skin texture naturally while keeping it realistic, not over-processed");
-        promptParts.push("- Make the face look clear, radiant, and professional");
+
+        promptParts.push("PRIMARY TASK: PROFESSIONAL FACE RETOUCHING");
+        promptParts.push("- Carefully retouch the face like a professional studio portrait.");
+        promptParts.push("- Perform professional portrait retouch similar to a studio photographer.");
+        promptParts.push("- Remove acne, blemishes, pimples, scars, dark spots and skin imperfections.");
+        promptParts.push("- Remove under-eye dark circles and facial shadows.");
+        promptParts.push("- Smooth skin texture naturally while keeping natural skin detail.");
+        promptParts.push("- Brighten facial skin tone evenly so the face looks fresh and healthy.");
+        promptParts.push("- Improve facial clarity and sharpness.");
+        promptParts.push("- Keep beard, moustache, and natural facial hair unchanged.");
         promptParts.push("");
-        promptParts.push("Keep the same person and identity exactly. Do not change face shape, facial proportions, or recognizable features.");
+
+        promptParts.push("IMPORTANT IDENTITY RULES:");
+        promptParts.push("- Keep the same person identity exactly.");
+        promptParts.push("- Do NOT change face shape.");
+        promptParts.push("- Do NOT change eyes, nose, lips, ears, or facial proportions.");
+        promptParts.push("- Do NOT beautify or modify facial structure.");
         promptParts.push("");
-        promptParts.push("Improve overall image clarity and sharpness. Remove blur completely.");
+
+        promptParts.push("IMPORTANT:");
+        promptParts.push("Even if clothing remains unchanged, facial retouching MUST still be applied.");
         promptParts.push("");
-        promptParts.push("Apply clean, even studio lighting with no harsh shadows on the face.");
+
+        promptParts.push("LIGHTING:");
+        promptParts.push("- Apply clean professional studio lighting.");
+        promptParts.push("- Remove harsh shadows from the face.");
+        promptParts.push("- Make lighting even across the face and neck.");
         promptParts.push("");
-        promptParts.push("Center the f if head and neck not straightace, align it straight, and ensure the person looks directly at the camera.");
+
+        promptParts.push("FACE POSITION:");
+        promptParts.push("- Ensure the head is straight and centered.");
+        promptParts.push("- Person must face the camera directly.");
         promptParts.push("");
+
+        promptParts.push("IMAGE QUALITY:");
+        promptParts.push("- Improve overall sharpness.");
+        promptParts.push("- Remove blur.");
+        promptParts.push("- Produce a clean high-resolution passport photo.");
+        promptParts.push("");
+
+        promptParts.push("BACKGROUND:");
         promptParts.push(bgDescription + ".");
         promptParts.push("");
+
         promptParts.push(outfitInstructions);
 
         const extraPrompt = document.getElementById('extraPrompt').value;
+
         if (extraPrompt) {
             promptParts.push("");
-            promptParts.push("IMPORTANT USER REQUEST:");
-            promptParts.push("- " + extraPrompt);
-            promptParts.push("- Follow this instruction strictly while maintaining other requirements.");
+            promptParts.push("USER EXTRA REQUEST:");
+            promptParts.push(extraPrompt);
         }
 
         const prompt = promptParts.join("\n");
@@ -270,8 +332,8 @@ async function generatePassportPhoto() {
                 image_urls: [base64Image], // Keep plural just in case
                 num_images: 1,
                 output_format: 'png',
-                strength: 0.85, // Allow significant changes (for outfit)
-                guidance_scale: 7.5, // Standard adherence to prompt
+                strength: 0.65, // Allow significant changes (for outfit)
+                guidance_scale: 9, // Standard adherence to prompt
                 safety_checker_version: "v1" // Standard
             })
         });
