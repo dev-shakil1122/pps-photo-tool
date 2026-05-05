@@ -281,18 +281,26 @@ async function generatePassportPhoto() {
             },
             body: JSON.stringify({
                 prompt: prompt,
-                image_url: base64Image,
+                image_url: base64Image, // Legacy fallback
+                image_urls: [base64Image], // Required for nano-banana-2/edit
                 num_images: 1,
                 output_format: 'png',
-                strength: imageStrength, // Dynamic strength based on outfit selection
-                guidance_scale: 9, // Standard adherence to prompt
-                safety_checker_version: "v1" // Standard
+                strength: imageStrength, // Dynamic strength
+                guidance_scale: 9,
+                safety_checker_version: "v1"
             })
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `API Error: ${response.status}`);
+            let errorMsg = errorData.message || '';
+            // FastAPI validation errors are in the 'detail' array
+            if (errorData.detail && Array.isArray(errorData.detail)) {
+                errorMsg = errorData.detail.map(d => `${d.loc.join('.')}: ${d.msg}`).join(', ');
+            } else if (errorData.detail) {
+                errorMsg = errorData.detail;
+            }
+            throw new Error(errorMsg || `API Error: ${response.status}`);
         }
 
         const result = await response.json();
