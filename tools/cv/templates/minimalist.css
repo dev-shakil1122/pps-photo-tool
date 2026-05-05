@@ -269,9 +269,14 @@ body {
 
 .action-btn:hover { background: #333; }
 
-@media print, .generating-pdf {
+@media print {
     body { background: white; padding: 0; }
     .page { box-shadow: none; margin: 0; padding: 40px; transform: none !important; }
     .pdf-toolbar, .edit-controls { display: none !important; }
     .editable-container:hover { background-color: transparent; }
 }
+
+body.generating-pdf { background: white; padding: 0; }
+body.generating-pdf .page { box-shadow: none; margin: 0; padding: 40px; transform: none !important; }
+body.generating-pdf .pdf-toolbar, body.generating-pdf .edit-controls { display: none !important; }
+body.generating-pdf .editable-container:hover { background-color: transparent; }
