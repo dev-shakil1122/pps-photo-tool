@@ -154,7 +154,7 @@ async function generatePassportPhoto() {
         if (keepOriginalOutfit && tieSelection === 'no tie') {
             // Keep everything as is
             outfitInstructions = "Keep the person's original clothing but enhance its quality, sharpness, and lighting to look neat and highly professional.";
-            imageStrength = 0.80; // High strength to allow reframing, zooming, and retouching
+            imageStrength = 0.90; // Maximum strength to force zooming, cropping, and deep retouching
 
         } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
             // Keep outfit but add/change tie
@@ -230,27 +230,24 @@ async function generatePassportPhoto() {
         //     promptParts.push("");
         //     promptParts.push("IMPORTANT USER REQUEST:");
         //     promptParts.push("- " + extraPrompt);
-        //     promptParts.push("- Follow this instruction strictly while maintaining other requirements.");
-        // }
-
-        // const prompt = promptParts.join("\n");
-
-        // --- PROFESSIONAL PROMPT BUILDER (INSTRUCT FORMAT) ---
+        // --- PROFESSIONAL PROMPT BUILDER (SIMPLIFIED) ---
 
         const promptParts = [];
 
-        promptParts.push("Transform this image into a professional biometric passport portrait.");
-        promptParts.push("Crop and zoom the image so the person is centered, showing only the head and shoulders.");
-        promptParts.push("Remove any visible hands, phones, or distracting objects.");
-        promptParts.push("Professionally retouch the face to remove blemishes, acne, scars, and under-eye dark circles, while keeping their exact identity and facial hair completely unchanged.");
-        promptParts.push("Apply clean, even studio lighting to the face and background.");
+        promptParts.push("Professional close-up passport portrait photo. Head and shoulders only, zoomed in.");
+        promptParts.push("Flawless smooth skin, professional face retouching, studio lighting.");
         promptParts.push(bgDescription + ".");
-        promptParts.push(outfitInstructions);
+        
+        // Add outfit instruction
+        if (keepOriginalOutfit && tieSelection === 'no tie') {
+            promptParts.push("Wearing original clothes, neat and professional.");
+        } else {
+            promptParts.push(outfitInstructions);
+        }
 
         const extraPrompt = document.getElementById('extraPrompt').value;
-
         if (extraPrompt) {
-            promptParts.push("Also: " + extraPrompt);
+            promptParts.push(extraPrompt);
         }
 
         const prompt = promptParts.join(" ");
@@ -275,9 +272,6 @@ async function generatePassportPhoto() {
             return;
         }
 
-        // Debug: Log the prompt to verify it's being built
-        // console.log("GENERATED PROMPT:", prompt);
-
         // Call FAL AI Direct
         const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
             method: 'POST',
@@ -287,8 +281,7 @@ async function generatePassportPhoto() {
             },
             body: JSON.stringify({
                 prompt: prompt,
-                image_url: base64Image, // Try singular image_url for standard compatibility
-                image_urls: [base64Image], // Keep plural just in case
+                image_url: base64Image,
                 num_images: 1,
                 output_format: 'png',
                 strength: imageStrength, // Dynamic strength based on outfit selection
