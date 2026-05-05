@@ -149,7 +149,7 @@ async function generatePassportPhoto() {
         const keepOriginalOutfit = suitSelection === 'keep original';
 
         let outfitInstructions = '';
-        let imageStrength = 0.65; // Default strength for changing outfits
+        let imageStrength = 0.85; // High strength for changing outfits and reframing
 
         if (keepOriginalOutfit && tieSelection === 'no tie') {
             // Keep everything as is
@@ -157,7 +157,7 @@ async function generatePassportPhoto() {
 - Maintain the person's original clothing but enhance its quality, sharpness, and lighting.
 - Make the current clothing look neat, clean, and highly professional.
 - Fix any lighting issues on the clothing to match the new professional studio lighting.`;
-            imageStrength = 0.55; // Lower strength for retouching without full outfit replacement
+            imageStrength = 0.75; // Increased strength to allow reframing and removing hands/objects
 
         } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
             // Keep outfit but add/change tie
@@ -242,46 +242,21 @@ async function generatePassportPhoto() {
 
         const promptParts = [];
 
-        promptParts.push("Create a professional biometric passport photo from this image.");
+        promptParts.push("A professional, close-up biometric passport photo. Head and shoulders only.");
+        promptParts.push("CROP AND REFRAME the image so the person is centered, facing straight forward.");
+        promptParts.push("Remove any visible hands, phones, or objects. The person should have perfect posture.");
         promptParts.push("");
 
-        promptParts.push("PRIMARY TASK: PROFESSIONAL FACE RETOUCHING");
-        promptParts.push("- Carefully retouch the face like a professional studio portrait.");
-        promptParts.push("- Perform professional portrait retouch similar to a studio photographer.");
-        promptParts.push("- Remove acne, blemishes, pimples, scars, dark spots and skin imperfections.");
-        promptParts.push("- Remove under-eye dark circles and facial shadows.");
-        promptParts.push("- Smooth skin texture naturally while keeping natural skin detail.");
-        promptParts.push("- Brighten facial skin tone evenly so the face looks fresh and healthy.");
-        promptParts.push("- Improve facial clarity and sharpness.");
-        promptParts.push("- Keep beard, moustache, and natural facial hair unchanged.");
+        promptParts.push("FACE & LIGHTING ENHANCEMENT:");
+        promptParts.push("- Perform professional studio portrait retouching.");
+        promptParts.push("- Remove all acne, blemishes, scars, and under-eye dark circles.");
+        promptParts.push("- Apply clean, even, professional studio lighting across the face and neck, removing harsh shadows.");
+        promptParts.push("- Brighten the skin tone to look healthy and radiant.");
         promptParts.push("");
 
-        promptParts.push("IMPORTANT IDENTITY RULES:");
-        promptParts.push("- Keep the same person identity exactly.");
-        promptParts.push("- Do NOT change face shape.");
-        promptParts.push("- Do NOT change eyes, nose, lips, ears, or facial proportions.");
-        promptParts.push("- Do NOT beautify or modify facial structure.");
-        promptParts.push("");
-
-        promptParts.push("IMPORTANT:");
-        promptParts.push("Even if clothing remains unchanged, facial retouching MUST still be applied.");
-        promptParts.push("");
-
-        promptParts.push("LIGHTING:");
-        promptParts.push("- Apply clean professional studio lighting.");
-        promptParts.push("- Remove harsh shadows from the face.");
-        promptParts.push("- Make lighting even across the face and neck.");
-        promptParts.push("");
-
-        promptParts.push("FACE POSITION:");
-        promptParts.push("- Ensure the head is straight and centered.");
-        promptParts.push("- Person must face the camera directly.");
-        promptParts.push("");
-
-        promptParts.push("IMAGE QUALITY:");
-        promptParts.push("- Improve overall sharpness.");
-        promptParts.push("- Remove blur.");
-        promptParts.push("- Produce a clean high-resolution passport photo.");
+        promptParts.push("IDENTITY PRESERVATION:");
+        promptParts.push("- Keep the EXACT same person, facial features, and identity.");
+        promptParts.push("- Keep natural facial hair (beard/moustache) unchanged.");
         promptParts.push("");
 
         promptParts.push("BACKGROUND:");
