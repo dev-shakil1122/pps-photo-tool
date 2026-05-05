@@ -153,11 +153,8 @@ async function generatePassportPhoto() {
 
         if (keepOriginalOutfit && tieSelection === 'no tie') {
             // Keep everything as is
-            outfitInstructions = `CLOTHING & OUTFIT:
-- Maintain the person's original clothing but enhance its quality, sharpness, and lighting.
-- Make the current clothing look neat, clean, and highly professional.
-- Fix any lighting issues on the clothing to match the new professional studio lighting.`;
-            imageStrength = 0.75; // Increased strength to allow reframing and removing hands/objects
+            outfitInstructions = "Keep the person's original clothing but enhance its quality, sharpness, and lighting to look neat and highly professional.";
+            imageStrength = 0.80; // High strength to allow reframing, zooming, and retouching
 
         } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
             // Keep outfit but add/change tie
@@ -238,42 +235,25 @@ async function generatePassportPhoto() {
 
         // const prompt = promptParts.join("\n");
 
-        // --- PROFESSIONAL PROMPT BUILDER ---
+        // --- PROFESSIONAL PROMPT BUILDER (INSTRUCT FORMAT) ---
 
         const promptParts = [];
 
-        promptParts.push("A professional, close-up biometric passport photo. Head and shoulders only.");
-        promptParts.push("CROP AND REFRAME the image so the person is centered, facing straight forward.");
-        promptParts.push("Remove any visible hands, phones, or objects. The person should have perfect posture.");
-        promptParts.push("");
-
-        promptParts.push("FACE & LIGHTING ENHANCEMENT:");
-        promptParts.push("- Perform professional studio portrait retouching.");
-        promptParts.push("- Remove all acne, blemishes, scars, and under-eye dark circles.");
-        promptParts.push("- Apply clean, even, professional studio lighting across the face and neck, removing harsh shadows.");
-        promptParts.push("- Brighten the skin tone to look healthy and radiant.");
-        promptParts.push("");
-
-        promptParts.push("IDENTITY PRESERVATION:");
-        promptParts.push("- Keep the EXACT same person, facial features, and identity.");
-        promptParts.push("- Keep natural facial hair (beard/moustache) unchanged.");
-        promptParts.push("");
-
-        promptParts.push("BACKGROUND:");
+        promptParts.push("Transform this image into a professional biometric passport portrait.");
+        promptParts.push("Crop and zoom the image so the person is centered, showing only the head and shoulders.");
+        promptParts.push("Remove any visible hands, phones, or distracting objects.");
+        promptParts.push("Professionally retouch the face to remove blemishes, acne, scars, and under-eye dark circles, while keeping their exact identity and facial hair completely unchanged.");
+        promptParts.push("Apply clean, even studio lighting to the face and background.");
         promptParts.push(bgDescription + ".");
-        promptParts.push("");
-
         promptParts.push(outfitInstructions);
 
         const extraPrompt = document.getElementById('extraPrompt').value;
 
         if (extraPrompt) {
-            promptParts.push("");
-            promptParts.push("USER EXTRA REQUEST:");
-            promptParts.push(extraPrompt);
+            promptParts.push("Also: " + extraPrompt);
         }
 
-        const prompt = promptParts.join("\n");
+        const prompt = promptParts.join(" ");
 
         // --- CREDIT CHECK ---
         const hasCredit = await checkAndDeductCredit(false); // Check only
