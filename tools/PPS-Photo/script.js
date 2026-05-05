@@ -166,6 +166,77 @@ function smartCropForPassport(file) {
     });
 }
 
+// ── Brightness Normalization ────────────────────────────────────────────────
+// Analyzes the image brightness and applies a canvas filter to reduce extreme
+// highlights/shadows before sending to AI. This helps the AI see a more
+// balanced image and apply better retouching.
+function normalizeBrightness(source) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.naturalWidth || 600;
+            canvas.height = img.naturalHeight || 770;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Sample brightness from a center region of the image
+            const sampleW = Math.min(canvas.width, 200);
+            const sampleH = Math.min(canvas.height, 200);
+            const sampleX = Math.floor((canvas.width - sampleW) / 2);
+            const sampleY = Math.floor((canvas.height - sampleH) / 4); // upper-center (face area)
+
+            const data = ctx.getImageData(sampleX, sampleY, sampleW, sampleH).data;
+            let totalBrightness = 0;
+            const pixelCount = data.length / 4;
+            for (let i = 0; i < data.length; i += 4) {
+                // Perceived brightness formula
+                totalBrightness += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+            }
+            const avgBrightness = totalBrightness / pixelCount; // 0-255
+
+            // If brightness is normal (100-170), no adjustment needed
+            if (avgBrightness >= 90 && avgBrightness <= 175) {
+                resolve(canvas.toDataURL('image/jpeg', 0.95));
+                return;
+            }
+
+            // Apply CSS filter correction to normalize extreme lighting
+            let brightnessFilter = 1.0;
+            let contrastFilter = 1.0;
+
+            if (avgBrightness > 175) {
+                // Too bright (overexposed) — darken slightly
+                brightnessFilter = 0.85;
+                contrastFilter = 1.1;
+            } else if (avgBrightness < 90) {
+                // Too dark (underexposed) — brighten slightly
+                brightnessFilter = 1.25;
+                contrastFilter = 1.1;
+            }
+
+            // Apply correction using a second canvas with filter
+            const correctedCanvas = document.createElement('canvas');
+            correctedCanvas.width = canvas.width;
+            correctedCanvas.height = canvas.height;
+            const correctedCtx = correctedCanvas.getContext('2d');
+            correctedCtx.filter = `brightness(${brightnessFilter}) contrast(${contrastFilter})`;
+            correctedCtx.drawImage(canvas, 0, 0);
+
+            resolve(correctedCanvas.toDataURL('image/jpeg', 0.95));
+        };
+        img.onerror = () => resolve(null);
+
+        // Source can be a File object or a base64 string
+        if (typeof source === 'string') {
+            img.src = source;
+        } else {
+            img.src = URL.createObjectURL(source);
+        }
+    });
+}
+
+
 async function generatePassportPhoto() {
     if (!selectedFile) {
         showMessage('Please select an image first', 'error');
@@ -183,8 +254,11 @@ async function generatePassportPhoto() {
         showMessage('Pre-cropping to passport frame...', 'info');
         const croppedBase64 = await smartCropForPassport(selectedFile);
 
-        // Step 2: Use cropped version if available, fallback to original
-        const base64Image = croppedBase64 || await fileToBase64(selectedFile);
+        // Step 2: Apply canvas brightness normalization to fix extreme lighting
+        const normalizedBase64 = await normalizeBrightness(croppedBase64 || selectedFile);
+
+        // Step 3: Use normalized+cropped version, fallback chain
+        const base64Image = normalizedBase64 || croppedBase64 || await fileToBase64(selectedFile);
         showMessage('Processing with AI...', 'info');
 
         // Get customization values
@@ -235,64 +309,57 @@ async function generatePassportPhoto() {
             : `Replace background with a solid flat color ${bgColor} — no gradients, no shadows, no objects`;
 
         // --- PROFESSIONAL PASSPORT PHOTO PROMPT ---
+        // IMPORTANT: Face retouching is listed FIRST because AI models weight
+        // earlier instructions more heavily. This ensures retouching always
+        // happens regardless of what other changes are requested.
 
         const promptParts = [];
 
-        promptParts.push("You are a professional passport photo retouching AI. Your job is to analyze this photo and produce a perfect biometric passport photo.");
+        promptParts.push("CRITICAL PRIORITY #1 — FACE RETOUCHING (MUST DO FIRST, NO EXCEPTIONS):");
+        promptParts.push("This is the most important task. Before doing anything else, fully retouch the face:");
+        promptParts.push("- DETECT AND FIX uneven lighting on the face: if one side is darker, lighter, or has shadow from sunlight or a lamp, equalize it to studio-quality even lighting.");
+        promptParts.push("- Remove ALL shadows from the face — side shadows, under-chin shadows, forehead shadows.");
+        promptParts.push("- Remove ALL acne, pimples, blemishes, dark spots, scars, and skin imperfections from the face and neck.");
+        promptParts.push("- Remove under-eye dark circles and redness.");
+        promptParts.push("- Smooth skin texture naturally — realistic, not plastic.");
+        promptParts.push("- Brighten and even out skin tone across the entire face and neck.");
+        promptParts.push("- Sharpen the face, eyes, and hair for crisp high-resolution output.");
+        promptParts.push("- Keep beard, eyebrows, moustache, and all facial hair exactly as they are.");
         promptParts.push("");
 
-        promptParts.push("STEP 1 — ANALYZE THE IMAGE:");
-        promptParts.push("- Examine the photo carefully before making any changes.");
-        promptParts.push("- Identify: blur, shadows, pimples, dark spots, uneven lighting, bad framing, or image noise.");
-        promptParts.push("- Identify if the image needs to be cropped to show head and shoulders only.");
-        promptParts.push("- Identify if the face is off-center or tilted.");
+        promptParts.push("CRITICAL PRIORITY #2 — LIGHTING CORRECTION:");
+        promptParts.push("- Replace any harsh, uneven, or directional lighting with flat, even studio lighting.");
+        promptParts.push("- If sunlight or a lamp is hitting one side of the face, REMOVE that directional light and replace with uniform frontal lighting.");
+        promptParts.push("- No shadows should remain on the face, neck, or background.");
+        promptParts.push("- Lighting should look like a professional studio passport photo taken with a ring light.");
         promptParts.push("");
 
-        promptParts.push("STEP 2 — MANDATORY FACE RETOUCHING (ALWAYS APPLY, NO EXCEPTIONS):");
-        promptParts.push("- Remove ALL acne, pimples, blemishes, scars, dark spots, and skin imperfections.");
-        promptParts.push("- Remove under-eye dark circles, redness, and any shadows on the face and neck.");
-        promptParts.push("- Smooth skin texture naturally — keep it realistic, not plastic or over-smoothed.");
-        promptParts.push("- Brighten and even out facial skin tone so the face looks fresh, healthy and natural.");
-        promptParts.push("- Sharpen the face, eyes, and hair to look crisp and high-resolution.");
-        promptParts.push("- Fix any blur on the face — this is mandatory even if clothing is kept unchanged.");
-        promptParts.push("- Keep beard, eyebrows, moustache, and all natural facial hair exactly as they are.");
+        promptParts.push("PRIORITY #3 — IDENTITY (DO NOT CHANGE THESE):");
+        promptParts.push("- This MUST be the same person. Keep face shape, bone structure, and all facial features identical.");
+        promptParts.push("- Do NOT change eye shape, nose, lips, ears, or facial proportions.");
+        promptParts.push("- Do NOT make the person look like a different individual.");
         promptParts.push("");
 
-        promptParts.push("STEP 3 — LIGHTING CORRECTION:");
-        promptParts.push("- Apply even, clean studio-quality lighting across the face.");
-        promptParts.push("- Eliminate harsh shadows from any side of the face.");
-        promptParts.push("- Fix overexposed or underexposed areas on the face.");
-        promptParts.push("- Ensure the neck and face are lit consistently.");
+        promptParts.push("PRIORITY #4 — FRAMING & ALIGNMENT:");
+        promptParts.push("- The image has already been pre-cropped to passport framing.");
+        promptParts.push("- Center the face horizontally. Top of head near top edge with small margin.");
+        promptParts.push("- Face (chin to top of head) should occupy 70-80% of frame height.");
+        promptParts.push("- Straighten any slight head tilt. Person must face directly forward.");
         promptParts.push("");
 
-        promptParts.push("STEP 4 — FRAMING & ALIGNMENT:");
-        promptParts.push("- The input image has already been pre-cropped to passport framing (head and upper shoulders).");
-        promptParts.push("- Align the face so it is perfectly centered horizontally.");
-        promptParts.push("- The top of the head should be near the top edge of the frame with a small margin.");
-        promptParts.push("- The face (from chin to top of head) should occupy approximately 70–80% of the frame height.");
-        promptParts.push("- Straighten the head if slightly tilted.");
-        promptParts.push("- The person must look directly forward at the camera.");
-        promptParts.push("");
-
-        promptParts.push("STEP 5 — BACKGROUND:");
+        promptParts.push("PRIORITY #5 — BACKGROUND:");
         promptParts.push(bgDescription + ".");
-        promptParts.push("- The background must be completely clean with no objects, furniture, or shadows.");
+        promptParts.push("- Clean, completely flat background. No objects, no shadows, no gradients.");
         promptParts.push("");
 
-        promptParts.push("STEP 6 — OUTFIT:");
+        promptParts.push("PRIORITY #6 — OUTFIT:");
         promptParts.push(outfitInstructions);
         promptParts.push("");
 
-        promptParts.push("IDENTITY RULES (CRITICAL):");
-        promptParts.push("- This MUST be the same person. Do NOT change the face shape, bone structure, or features.");
-        promptParts.push("- Do NOT make the person look like a different individual.");
-        promptParts.push("- Do NOT change eye shape, nose, lips, or ears.");
-        promptParts.push("");
-
-        promptParts.push("OUTPUT:");
-        promptParts.push("- Produce a single high-resolution passport photo.");
-        promptParts.push("- No text, no borders, no watermarks, no extra elements.");
-        promptParts.push("- The result must look like a professional studio passport photo.");
+        promptParts.push("FINAL OUTPUT:");
+        promptParts.push("- Single high-resolution professional studio passport photo.");
+        promptParts.push("- No text, borders, watermarks, or extra elements.");
+        promptParts.push("- Face must look visibly retouched: clear skin, even lighting, sharp eyes.");
 
         const extraPrompt = document.getElementById('extraPrompt').value.trim();
         if (extraPrompt) {
@@ -303,9 +370,7 @@ async function generatePassportPhoto() {
 
         const prompt = promptParts.join("\n");
 
-        // Always use high strength — we pre-crop the image so the AI always
-        // does a full regeneration (like when changing suit) in all modes.
-        const editStrength = 0.87;
+        const editStrength = 0.92;  // High: forces aggressive face retouch & lighting fix
 
         // --- CREDIT CHECK ---
         const hasCredit = await checkAndDeductCredit(false); // Check only
@@ -343,8 +408,8 @@ async function generatePassportPhoto() {
                 image_urls: [base64Image],
                 num_images: 1,
                 output_format: 'png',
-                strength: editStrength,        // Dynamic: 0.82 for retouch-only, 0.70 for outfit change
-                guidance_scale: 10,            // Higher adherence to prompt instructions
+                strength: editStrength,
+                guidance_scale: 12,            // Max adherence — ensures retouching instructions are followed
                 safety_checker_version: "v1"
             })
         });
