@@ -149,11 +149,15 @@ async function generatePassportPhoto() {
         const keepOriginalOutfit = suitSelection === 'keep original';
 
         let outfitInstructions = '';
+        let imageStrength = 0.65; // Default strength for changing outfits
+
         if (keepOriginalOutfit && tieSelection === 'no tie') {
             // Keep everything as is
             outfitInstructions = `CLOTHING & OUTFIT:
-- PRESERVE the person's original clothing/outfit. 
-- Enhance the clearity of the outfit if it is blurry`;
+- Maintain the person's original clothing but enhance its quality, sharpness, and lighting.
+- Make the current clothing look neat, clean, and highly professional.
+- Fix any lighting issues on the clothing to match the new professional studio lighting.`;
+            imageStrength = 0.55; // Lower strength for retouching without full outfit replacement
 
         } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
             // Keep outfit but add/change tie
@@ -332,7 +336,7 @@ async function generatePassportPhoto() {
                 image_urls: [base64Image], // Keep plural just in case
                 num_images: 1,
                 output_format: 'png',
-                strength: 0.65, // Allow significant changes (for outfit)
+                strength: imageStrength, // Dynamic strength based on outfit selection
                 guidance_scale: 9, // Standard adherence to prompt
                 safety_checker_version: "v1" // Standard
             })
