@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>CV Preview - Executive</title>
@@ -7,15 +8,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+Pro:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
+
 <body>
     <div class="pdf-toolbar">
-        <button class="action-btn" onclick="adjustFontSize(1)" title="Increase Font"><i class="fas fa-font"></i>+</button>
-        <button class="action-btn" onclick="adjustFontSize(-1)" title="Decrease Font"><i class="fas fa-font"></i>-</button>
-        <button class="action-btn" onclick="adjustSpacing(5)" title="Increase Spacing"><i class="fas fa-arrow-up"></i>+</button>
-        <button class="action-btn" onclick="adjustSpacing(-5)" title="Decrease Spacing"><i class="fas fa-arrow-up"></i>-</button>
+        <button class="action-btn" onclick="adjustFontSize(1)" title="Increase Font"><i
+                class="fas fa-font"></i>+</button>
+        <button class="action-btn" onclick="adjustFontSize(-1)" title="Decrease Font"><i
+                class="fas fa-font"></i>-</button>
+        <button class="action-btn" onclick="adjustSpacing(5)" title="Increase Spacing"><i
+                class="fas fa-arrow-up"></i>+</button>
+        <button class="action-btn" onclick="adjustSpacing(-5)" title="Decrease Spacing"><i
+                class="fas fa-arrow-up"></i>-</button>
         <button class="action-btn" onclick="printCV()"><i class="fas fa-print"></i></button>
     </div>
 
@@ -53,7 +61,7 @@
 
                 <section class="section education-section">
                     <div class="section-title">
-                        <h3 contenteditable="true">Education</h3>
+                        <h3 contenteditable="true">Education & Certificate</h3>
                     </div>
                     <ul class="education-list">
                         <!-- JS Populates -->
@@ -95,12 +103,12 @@
     <script>
         function fitToScreen() {
             const page = document.querySelector('.page');
-            const pageWidth = 794; 
+            const pageWidth = 794;
             const windowWidth = window.innerWidth;
             if (windowWidth < pageWidth) {
-                const scale = (windowWidth - 20) / pageWidth; 
+                const scale = (windowWidth - 20) / pageWidth;
                 page.style.transform = `scale(${scale})`;
-                page.style.transformOrigin = 'top center'; 
+                page.style.transformOrigin = 'top center';
                 page.style.marginLeft = '0';
                 page.style.marginTop = '0';
                 const heightDiff = page.offsetHeight * (1 - scale);
@@ -301,4 +309,5 @@
         }
     </script>
 </body>
+
 </html>
