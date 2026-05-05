@@ -122,23 +122,70 @@ if (generateBtn) generateBtn.addEventListener('click', generatePassportPhoto);
 if (clearBtn) clearBtn.addEventListener('click', clearAll);
 if (downloadBtn) downloadBtn.addEventListener('click', downloadImage);
 
+// ── Smart Pre-Crop ─────────────────────────────────────────────────────────
+// Before sending to AI, crop the image to head+shoulders (top-center 3:4 crop).
+// This ensures the AI receives a passport-framed input even when the original
+// is a wide shot, so it always outputs properly aligned results.
+function smartCropForPassport(file) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const srcW = img.naturalWidth;
+            const srcH = img.naturalHeight;
+
+            // Passport ratio: 35mm wide x 45mm tall = ~0.778 (width/height)
+            const passportRatio = 35 / 45;
+
+            // Strategy: take the top 80% of the image (head area), centered horizontally
+            let cropH = Math.round(srcH * 0.80);
+            let cropW = Math.round(cropH * passportRatio);
+
+            // If crop width exceeds image width, constrain by width
+            if (cropW > srcW) {
+                cropW = srcW;
+                cropH = Math.round(cropW / passportRatio);
+            }
+
+            // Center horizontally; start from the very top
+            const cropX = Math.round((srcW - cropW) / 2);
+            const cropY = 0;
+
+            // Output at 600x770 (standard high-res passport dimensions)
+            canvas.width = 600;
+            canvas.height = 770;
+
+            ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, 600, 770);
+
+            resolve(canvas.toDataURL('image/jpeg', 0.95));
+        };
+        img.onerror = () => resolve(null); // fallback: return null on error
+        img.src = URL.createObjectURL(file);
+    });
+}
+
 async function generatePassportPhoto() {
     if (!selectedFile) {
         showMessage('Please select an image first', 'error');
         return;
     }
 
-    // API Key check moved to backend
-
     generateBtn.disabled = true;
     loadingSpinner.classList.add('show');
     resultImage.classList.remove('show');
     downloadBtn.classList.remove('show');
-    showMessage('Processing your photo...', 'info');
+    showMessage('Analyzing and cropping photo...', 'info');
 
     try {
-        // Convert image to base64
-        const base64Image = await fileToBase64(selectedFile);
+        // Step 1: Pre-crop to passport framing before sending to AI
+        showMessage('Pre-cropping to passport frame...', 'info');
+        const croppedBase64 = await smartCropForPassport(selectedFile);
+
+        // Step 2: Use cropped version if available, fallback to original
+        const base64Image = croppedBase64 || await fileToBase64(selectedFile);
+        showMessage('Processing with AI...', 'info');
 
         // Get customization values
         const bgColor = bgColorInput.value;
@@ -150,19 +197,23 @@ async function generatePassportPhoto() {
 
         let outfitInstructions = '';
         if (keepOriginalOutfit && tieSelection === 'no tie') {
+            // Use "reproduce" language — this forces the AI to fully regenerate
+            // the image (like it does when changing suit) rather than doing a
+            // minimal edit that skips cropping and retouching.
             outfitInstructions = `CLOTHING & OUTFIT:
-- PRESERVE the person's exact original clothing, colors, and fabric detail.
-- Sharpen and clarify the outfit if it appears blurry or unclear.
-- Do NOT modify the clothing in any way.`;
+- REPRODUCE the person wearing the EXACT SAME clothes visible in the photo.
+- Match every detail: fabric color, clothing type, jacket/shirt style, collar.
+- The goal is an identical outfit — regenerated in high quality and sharpness.
+- Do NOT change or modify the clothing color, type, or style.`;
 
         } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
             let tieInstruction = tieSelection === 'custom tie'
                 ? `a professional tie in color ${customTieColor.value}`
                 : `a professional ${tieSelection}`;
             outfitInstructions = `CLOTHING & OUTFIT:
-- PRESERVE the person's exact original clothing, colors, and fabric detail.
-- Sharpen and clarify the outfit if it appears blurry or unclear.
-- Add ${tieInstruction} if not already present, or update the tie color if one exists.`;
+- REPRODUCE the person wearing the EXACT SAME clothes visible in the photo.
+- Match every detail: fabric color, clothing type, jacket/shirt style, collar.
+- Additionally, add ${tieInstruction} to the outfit.`;
 
         } else {
             let suitColor = suitSelection === 'custom suit'
@@ -214,12 +265,13 @@ async function generatePassportPhoto() {
         promptParts.push("- Ensure the neck and face are lit consistently.");
         promptParts.push("");
 
-        promptParts.push("STEP 4 — FRAMING & CROP:");
-        promptParts.push("- Frame the output as a standard passport photo showing head and upper shoulders.");
-        promptParts.push("- Center the face horizontally and position the top of the head near the top of the frame.");
-        promptParts.push("- The face should occupy 70–80% of the frame height.");
-        promptParts.push("- If the original image shows more of the body, crop it to passport framing.");
-        promptParts.push("- Ensure the person faces directly forward.");
+        promptParts.push("STEP 4 — FRAMING & ALIGNMENT:");
+        promptParts.push("- The input image has already been pre-cropped to passport framing (head and upper shoulders).");
+        promptParts.push("- Align the face so it is perfectly centered horizontally.");
+        promptParts.push("- The top of the head should be near the top edge of the frame with a small margin.");
+        promptParts.push("- The face (from chin to top of head) should occupy approximately 70–80% of the frame height.");
+        promptParts.push("- Straighten the head if slightly tilted.");
+        promptParts.push("- The person must look directly forward at the camera.");
         promptParts.push("");
 
         promptParts.push("STEP 5 — BACKGROUND:");
@@ -251,8 +303,9 @@ async function generatePassportPhoto() {
 
         const prompt = promptParts.join("\n");
 
-        // Strength: higher when keeping outfit (force face retouch), lower when changing outfit (avoid over-generation)
-        const editStrength = keepOriginalOutfit ? 0.82 : 0.70;
+        // Always use high strength — we pre-crop the image so the AI always
+        // does a full regeneration (like when changing suit) in all modes.
+        const editStrength = 0.87;
 
         // --- CREDIT CHECK ---
         const hasCredit = await checkAndDeductCredit(false); // Check only
