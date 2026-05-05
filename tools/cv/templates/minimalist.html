@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV Preview - Minimalist</title>
+    <link rel="stylesheet" href="minimalist.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="pdf-toolbar">
+        <button class="action-btn" onclick="adjustFontSize(1)" title="Increase Font"><i class="fas fa-font"></i>+</button>
+        <button class="action-btn" onclick="adjustFontSize(-1)" title="Decrease Font"><i class="fas fa-font"></i>-</button>
+        <button class="action-btn" onclick="adjustSpacing(5)" title="Increase Spacing"><i class="fas fa-arrow-up"></i>+</button>
+        <button class="action-btn" onclick="adjustSpacing(-5)" title="Decrease Spacing"><i class="fas fa-arrow-up"></i>-</button>
+        <button class="action-btn" onclick="printCV()"><i class="fas fa-print"></i></button>
+    </div>
+
+    <div class="page" id="cvPage">
+        <header class="header">
+            <h1 contenteditable="true" class="name-display">Your Name</h1>
+            <h2 contenteditable="true" class="target-title">Target Role</h2>
+            <div class="contact-info">
+                <!-- Populated by JS -->
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="section">
+                <div class="section-title">
+                    <h3 contenteditable="true">Summary</h3>
+                </div>
+                <p contenteditable="true" class="summary-text">Summary text...</p>
+            </section>
+
+            <section class="section experience-section">
+                <div class="section-title">
+                    <h3 contenteditable="true">Experience</h3>
+                </div>
+                <!-- JS Populates this -->
+            </section>
+
+            <section class="section education-section">
+                <div class="section-title">
+                    <h3 contenteditable="true">Education</h3>
+                </div>
+                <ul class="education-list">
+                    <!-- JS Populates -->
+                </ul>
+            </section>
+            
+            <div class="grid-2-col">
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Skills</h3>
+                    </div>
+                    <ul class="skills-list">
+                        <!-- JS Populates -->
+                    </ul>
+                </section>
+
+                <section class="section">
+                    <div class="section-title">
+                        <h3 contenteditable="true">Languages</h3>
+                    </div>
+                    <ul class="languages-list">
+                        <!-- JS Populates -->
+                    </ul>
+                </section>
+            </div>
+
+            <section class="section personal-details-section">
+                <div class="section-title">
+                    <h3 contenteditable="true">Personal Details</h3>
+                </div>
+                <div class="detail-grid">
+                    <!-- JS Populates this -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Auto-Fit Function (Mobile Logic)
+        function fitToScreen() {
+            const page = document.querySelector('.page');
+            const pageWidth = 794; 
+            const windowWidth = window.innerWidth;
+
+            if (windowWidth < pageWidth) {
+                const scale = (windowWidth - 20) / pageWidth; 
+                page.style.transform = `scale(${scale})`;
+                page.style.transformOrigin = 'top center'; 
+                page.style.marginLeft = '0';
+                page.style.marginTop = '0';
+                const heightDiff = page.offsetHeight * (1 - scale);
+                page.style.marginBottom = `-${heightDiff}px`;
+            } else {
+                page.style.transform = '';
+                page.style.transformOrigin = '';
+                page.style.marginBottom = '';
+                page.style.marginLeft = '';
+                page.style.marginTop = '';
+            }
+        }
+        window.addEventListener('resize', fitToScreen);
+
+        function attachDynamicControls() {
+            document.querySelectorAll(
+                '.skills-list li, ' +
+                '.contact-info div, ' +
+                '.languages-list li, ' +
+                '.education-list li, ' +
+                '.job-item ul li, ' +
+                '.detail-row'
+            ).forEach(el => addControlsToElement(el));
+        }
+
+        function addControlsToElement(el) {
+            if (el.querySelector('.edit-controls')) return;
+            el.classList.add('editable-container');
+            const controls = document.createElement('div');
+            controls.className = 'edit-controls';
+            controls.contentEditable = "false";
+            controls.innerHTML = `
+                <button class="edit-btn add-item-btn" title="Add New">+</button>
+                <button class="edit-btn remove-item-btn" title="Remove">-</button>
+            `;
+            el.appendChild(controls);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cvData = JSON.parse(localStorage.getItem('cvData'));
+
+            if (cvData) {
+                // Header
+                document.querySelector('.name-display').innerText = cvData.contact.name;
+                const titleEl = document.querySelector('.target-title');
+                if (titleEl && cvData.target_job_title) {
+                    titleEl.innerText = cvData.target_job_title;
+                }
+
+                const contactDiv = document.querySelector('.contact-info');
+                contactDiv.innerHTML = `
+                    <div contenteditable="true"><i class="fas fa-phone"></i> ${cvData.contact.phone}</div>
+                    <div contenteditable="true"><i class="fas fa-envelope"></i> ${cvData.contact.email}</div>
+                    <div contenteditable="true"><i class="fas fa-map-marker-alt"></i> ${cvData.jobs[0]?.location || 'Doha, Qatar'}</div>
+                `;
+
+                // Summary
+                document.querySelector('.summary-text').innerText = cvData.ai_content.summary;
+
+                // Experience
+                const expSection = document.querySelector('.experience-section');
+                const expTitle = expSection.querySelector('.section-title');
+                expSection.innerHTML = '';
+                expSection.appendChild(expTitle);
+
+                cvData.jobs.forEach(job => {
+                    const jobDiv = document.createElement('div');
+                    jobDiv.className = 'job-item';
+                    jobDiv.innerHTML = `
+                        <div class="job-header">
+                            <div class="job-title-company">
+                                <span contenteditable="true" class="job-title">${job.title}</span>
+                                <span class="job-separator">|</span>
+                                <span contenteditable="true" class="job-company">${job.company}</span>
+                            </div>
+                            <div class="job-meta">
+                                <span contenteditable="true">${job.location}</span>
+                                <span contenteditable="true">${job.working_year}</span>
+                            </div>
+                        </div>
+                        <ul>
+                            ${job.bullets.map(b => `<li contenteditable="true">${b}</li>`).join('')}
+                        </ul>
+                    `;
+                    expSection.appendChild(jobDiv);
+                });
+
+                // Personal Details
+                const detailGrid = document.querySelector('.detail-grid');
+                detailGrid.innerHTML = `
+                    <div class="detail-row" contenteditable="true"><strong>QID NO:</strong> ${cvData.personal.qid || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>QID EXP:</strong> ${cvData.personal.qid_exp || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>DOB:</strong> ${cvData.personal.dob || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>PASS NO:</strong> ${cvData.personal.passport_no || 'N/A'}</div>
+                    <div class="detail-row" contenteditable="true"><strong>PASS EXP:</strong> ${cvData.personal.passport_exp || 'N/A'}</div>
+                `;
+
+                // Skills
+                const skillsList = document.querySelector('.skills-list');
+                if (skillsList) {
+                    skillsList.innerHTML = cvData.ai_content.skills.map(skill =>
+                        `<li contenteditable="true">${skill}</li>`
+                    ).join('');
+                }
+
+                // Languages
+                const languagesList = document.querySelector('.languages-list');
+                if (cvData.languages && cvData.languages.length > 0) {
+                    languagesList.innerHTML = cvData.languages.map(lang =>
+                        `<li contenteditable="true">${lang}</li>`
+                    ).join('');
+                }
+
+                // Education
+                const eduList = document.querySelector('.education-list');
+                if (cvData.education && cvData.education.length > 0) {
+                    eduList.innerHTML = cvData.education.map(edu =>
+                        `<li class="edu-item" contenteditable="true">
+                            <div class="edu-degree"><strong>${edu.degree}</strong></div>
+                            <div class="edu-school">${edu.school}, ${edu.country}</div>
+                        </li>`
+                    ).join('');
+                }
+            }
+
+            setTimeout(attachDynamicControls, 100);
+
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.add-item-btn')) {
+                    const current = e.target.closest('.editable-container');
+                    if (current) {
+                        const newItem = current.cloneNode(true);
+                        if (newItem.tagName === 'LI') {
+                            if (newItem.classList.contains('edu-item')) {
+                                newItem.innerHTML = '<div class="edu-degree"><strong>New Degree</strong></div><div class="edu-school">School, Country</div>';
+                            } else {
+                                newItem.innerHTML = 'New Item';
+                            }
+                        } else if (newItem.classList.contains('detail-row')) {
+                            newItem.innerHTML = '<strong>New Field:</strong> Value';
+                        } else {
+                            newItem.innerText = 'New Info';
+                        }
+                        current.after(newItem);
+                        newItem.querySelector('.edit-controls')?.remove();
+                        addControlsToElement(newItem);
+                    }
+                }
+                if (e.target.closest('.remove-item-btn')) {
+                    const current = e.target.closest('.editable-container');
+                    if (current && confirm('Remove this item?')) current.remove();
+                }
+            });
+        });
+
+        let currentFontSize = 14;
+
+        function adjustFontSize(step) {
+            currentFontSize += step;
+            if (currentFontSize < 10) currentFontSize = 10;
+            if (currentFontSize > 24) currentFontSize = 24;
+            document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+        }
+
+        function adjustSpacing(step) {
+            const root = document.documentElement;
+            const style = getComputedStyle(root);
+            let current = parseInt(style.getPropertyValue('--section-spacing')) || 24;
+            let newSpacing = current + step;
+            if (newSpacing < 5) newSpacing = 100;
+            root.style.setProperty('--section-spacing', newSpacing + 'px');
+        }
+
+        function printCV() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
