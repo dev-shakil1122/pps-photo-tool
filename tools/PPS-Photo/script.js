@@ -149,12 +149,12 @@ async function generatePassportPhoto() {
         const keepOriginalOutfit = suitSelection === 'keep original';
 
         let outfitInstructions = '';
-        let imageStrength = 0.70; // Standard strength for changing outfits
+        let imageStrength = 0.85; // High strength for changing outfits and reframing
 
         if (keepOriginalOutfit && tieSelection === 'no tie') {
             // Keep everything as is
-            outfitInstructions = "Wearing original clothes, neat and highly professional.";
-            imageStrength = 0.45; // Lower strength required for standard image-to-image to preserve facial identity
+            outfitInstructions = "Keep the person's original clothing but enhance its quality, sharpness, and lighting to look neat and highly professional.";
+            imageStrength = 0.90; // Maximum strength to force zooming, cropping, and deep retouching
 
         } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
             // Keep outfit but add/change tie
@@ -165,8 +165,12 @@ async function generatePassportPhoto() {
             } else {
                 tieInstruction = `add a professional ${tieSelection}`;
             }
-            outfitInstructions = `Wearing their original clothes but seamlessly ${tieInstruction}.`;
-            imageStrength = 0.55; // Slightly higher to allow adding the tie
+            outfitInstructions = `CLOTHING & OUTFIT:
+- PRESERVE the person's original clothing/outfit.
+- DO NOT modify shirt, jacket, or other garments design.
+- Enhance the clearity of the outfit if it is blurry
+- Only ${tieInstruction} if not already wearing one, or update tie color if already present
+`;
         } else {
             // Change outfit
             let suitColor = '';
@@ -269,7 +273,7 @@ async function generatePassportPhoto() {
         }
 
         // Call FAL AI Direct
-        const response = await fetch('https://fal.run/fal-ai/flux/dev/image-to-image', {
+        const response = await fetch('https://fal.run/fal-ai/nano-banana-2/edit', {
             method: 'POST',
             headers: {
                 'Authorization': `Key ${FAL_KEY}`,
@@ -277,10 +281,13 @@ async function generatePassportPhoto() {
             },
             body: JSON.stringify({
                 prompt: prompt,
-                image_url: base64Image,
+                image_url: base64Image, // Legacy fallback
+                image_urls: [base64Image], // Required for nano-banana-2/edit
                 num_images: 1,
                 output_format: 'png',
-                strength: imageStrength, // Safe strength to preserve identity
+                strength: imageStrength, // Dynamic strength
+                guidance_scale: 9,
+                safety_checker_version: "v1"
             })
         });
 
