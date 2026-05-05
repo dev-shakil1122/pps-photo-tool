@@ -304,10 +304,6 @@ async function generatePassportPhoto() {
 - Ensure collar and shirt are visible under the jacket.`;
         }
 
-        const bgDescription = bgColor === '#ffffff'
-            ? 'Replace background with a clean, plain white (#ffffff) studio background'
-            : `Replace background with a solid flat color ${bgColor} — no gradients, no shadows, no objects`;
-
         // ── TWO-STEP PIPELINE ──────────────────────────────────────────────────
         // The nano-banana model cannot retouch faces AND change backgrounds in
         // a single call — it prioritizes the background change and skips the
