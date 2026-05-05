@@ -71,55 +71,72 @@
                     </div>
                 </div>
 
-                <!-- Row 3: Customization Side by Side -->
-                <div class="customization-row">
-                    <!-- Background Color -->
-                    <div class="customization-section">
-                        <div class="customization-title">🎨 Background</div>
+                <!-- Row 3: Mode + Customization -->
+                <div class="customization-row" style="flex-direction: column; gap: 12px;">
+
+                    <!-- Mode Selector -->
+                    <div class="customization-section" style="width: 100%;">
+                        <div class="customization-title">⚡ Generation Mode</div>
                         <div class="option-group">
-                            <label class="option-label">Color</label>
-                            <div class="color-picker-group">
-                                <input type="color" id="bgColorPicker" value="#ffffff" />
-                                <input type="text" id="bgColorInput" class="color-input" value="#ffffff"
-                                    placeholder="#ffffff" />
+                            <select id="generationMode" style="width: 100%; font-size: 14px; font-weight: 600;">
+                                <option value="keep_original">📷 Keep Original Outfit — Retouch Face &amp; Fix Lighting</option>
+                                <option value="change_suit">👔 Change Outfit to Professional Suit</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Inline: Background + Suit/Tie -->
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+
+                        <!-- Background Color -->
+                        <div class="customization-section">
+                            <div class="customization-title">🎨 Background Color</div>
+                            <div class="option-group">
+                                <div class="color-picker-group">
+                                    <input type="color" id="bgColorPicker" value="#ffffff" />
+                                    <input type="text" id="bgColorInput" class="color-input" value="#ffffff"
+                                        placeholder="#ffffff" />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Suit Selection -->
-                    <div class="customization-section">
-                        <div class="customization-title">👔 Suit</div>
-                        <div class="option-group">
-                            <label class="option-label">Color</label>
-                            <select id="suitColor">
-                                <option value="keep original">Keep Original Outfit</option>
-                                <option value="dark business suit">Dark Business Suit</option>
-                                <option value="black suit">Black Suit</option>
-                                <option value="navy blue suit">Navy Blue Suit</option>
-                                <option value="charcoal gray suit">Charcoal Gray Suit</option>
-                                <option value="dark gray suit">Dark Gray Suit</option>
-                                <option value="custom suit">Custom Color</option>
-                            </select>
-                            <input type="color" id="customSuitColor" value="#1a1a1a" style="display: none;" />
-                        </div>
-                    </div>
+                        <!-- Suit + Tie (only shown when Change Suit mode is selected) -->
+                        <div id="suitOptions" style="display: none; gap: 16px; flex-wrap: wrap; align-items: flex-start;">
 
-                    <!-- Tie Selection -->
-                    <div class="customization-section">
-                        <div class="customization-title">🎀 Tie</div>
-                        <div class="option-group">
-                            <label class="option-label">Color</label>
-                            <select id="tieColor">
-                                <option value="no tie" selected>No Tie</option>
-                                <option value="dark tie">Dark Tie</option>
-                                <option value="black tie">Black Tie</option>
-                                <option value="navy blue tie">Navy Blue Tie</option>
-                                <option value="burgundy tie">Burgundy Tie</option>
-                                <option value="gray tie">Gray Tie</option>
-                                <option value="red tie">Red Tie</option>
-                                <option value="custom tie">Custom Color</option>
-                            </select>
-                            <input type="color" id="customTieColor" value="#1a1a1a" style="display: none;" />
+                            <!-- Suit Selection -->
+                            <div class="customization-section">
+                                <div class="customization-title">👔 Suit Color</div>
+                                <div class="option-group">
+                                    <select id="suitColor">
+                                        <option value="dark business suit">Dark Business Suit</option>
+                                        <option value="black suit">Black Suit</option>
+                                        <option value="navy blue suit">Navy Blue Suit</option>
+                                        <option value="charcoal gray suit">Charcoal Gray Suit</option>
+                                        <option value="dark gray suit">Dark Gray Suit</option>
+                                        <option value="custom suit">Custom Color</option>
+                                    </select>
+                                    <input type="color" id="customSuitColor" value="#1a1a1a" style="display: none; margin-top: 6px;" />
+                                </div>
+                            </div>
+
+                            <!-- Tie Selection -->
+                            <div class="customization-section">
+                                <div class="customization-title">🎀 Tie</div>
+                                <div class="option-group">
+                                    <select id="tieColor">
+                                        <option value="no tie" selected>No Tie</option>
+                                        <option value="dark tie">Dark Tie</option>
+                                        <option value="black tie">Black Tie</option>
+                                        <option value="navy blue tie">Navy Blue Tie</option>
+                                        <option value="burgundy tie">Burgundy Tie</option>
+                                        <option value="gray tie">Gray Tie</option>
+                                        <option value="red tie">Red Tie</option>
+                                        <option value="custom tie">Custom Color</option>
+                                    </select>
+                                    <input type="color" id="customTieColor" value="#1a1a1a" style="display: none; margin-top: 6px;" />
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>

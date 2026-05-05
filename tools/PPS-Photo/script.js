@@ -17,6 +17,8 @@ const downloadBtn = document.getElementById('downloadBtn');
 // Customization controls
 const bgColorPicker = document.getElementById('bgColorPicker');
 const bgColorInput = document.getElementById('bgColorInput');
+const generationModeSelect = document.getElementById('generationMode');
+const suitOptionsDiv = document.getElementById('suitOptions');
 const suitColorSelect = document.getElementById('suitColor');
 const customSuitColor = document.getElementById('customSuitColor');
 const tieColorSelect = document.getElementById('tieColor');
@@ -37,23 +39,27 @@ bgColorInput.addEventListener('change', (e) => {
     localStorage.setItem('bgColor', e.target.value);
 });
 
-// Handle suit color selection
-suitColorSelect.addEventListener('change', (e) => {
-    customSuitColor.style.display = e.target.value === 'custom suit' ? 'block' : 'none';
-});
+// Mode selector — show/hide suit options
+if (generationModeSelect) {
+    generationModeSelect.addEventListener('change', (e) => {
+        const isSuitMode = e.target.value === 'change_suit';
+        suitOptionsDiv.style.display = isSuitMode ? 'flex' : 'none';
+    });
+}
 
-customSuitColor.addEventListener('change', (e) => {
-    // No storage
-});
+// Handle suit color selection
+if (suitColorSelect) {
+    suitColorSelect.addEventListener('change', (e) => {
+        customSuitColor.style.display = e.target.value === 'custom suit' ? 'block' : 'none';
+    });
+}
 
 // Handle tie color selection
-tieColorSelect.addEventListener('change', (e) => {
-    customTieColor.style.display = e.target.value === 'custom tie' ? 'block' : 'none';
-});
-
-customTieColor.addEventListener('change', (e) => {
-    // No storage
-});
+if (tieColorSelect) {
+    tieColorSelect.addEventListener('change', (e) => {
+        customTieColor.style.display = e.target.value === 'custom tie' ? 'block' : 'none';
+    });
+}
 
 // Upload box click handler
 if (uploadBox) {
@@ -247,72 +253,21 @@ async function generatePassportPhoto() {
     loadingSpinner.classList.add('show');
     resultImage.classList.remove('show');
     downloadBtn.classList.remove('show');
-    showMessage('Analyzing and cropping photo...', 'info');
+    showMessage('Preparing image...', 'info');
 
     try {
-        // Step 1: Pre-crop to passport framing before sending to AI
-        showMessage('Pre-cropping to passport frame...', 'info');
-        const croppedBase64 = await smartCropForPassport(selectedFile);
-
-        // Step 2: Apply canvas brightness normalization to fix extreme lighting
+        // Pre-crop + brightness normalize
+        const croppedBase64    = await smartCropForPassport(selectedFile);
         const normalizedBase64 = await normalizeBrightness(croppedBase64 || selectedFile);
+        const base64Image      = normalizedBase64 || croppedBase64 || await fileToBase64(selectedFile);
 
-        // Step 3: Use normalized+cropped version, fallback chain
-        const base64Image = normalizedBase64 || croppedBase64 || await fileToBase64(selectedFile);
-        showMessage('Processing with AI...', 'info');
-
-        // Get customization values
         const bgColor = bgColorInput.value;
-        const suitSelection = suitColorSelect.value;
-        const tieSelection = tieColorSelect.value;
+        const mode    = generationModeSelect ? generationModeSelect.value : 'keep_original';
+        const bgDescription = bgColor === '#ffffff'
+            ? 'plain white (#ffffff) studio background — clean, no shadows, no objects'
+            : `solid flat ${bgColor} background — clean, no shadows, no gradients`;
 
-        // Build outfit instructions based on selections
-        const keepOriginalOutfit = suitSelection === 'keep original';
-
-        let outfitInstructions = '';
-        if (keepOriginalOutfit && tieSelection === 'no tie') {
-            // Use "reproduce" language — this forces the AI to fully regenerate
-            // the image (like it does when changing suit) rather than doing a
-            // minimal edit that skips cropping and retouching.
-            outfitInstructions = `CLOTHING & OUTFIT:
-- REPRODUCE the person wearing the EXACT SAME clothes visible in the photo.
-- Match every detail: fabric color, clothing type, jacket/shirt style, collar.
-- The goal is an identical outfit — regenerated in high quality and sharpness.
-- Do NOT change or modify the clothing color, type, or style.`;
-
-        } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
-            let tieInstruction = tieSelection === 'custom tie'
-                ? `a professional tie in color ${customTieColor.value}`
-                : `a professional ${tieSelection}`;
-            outfitInstructions = `CLOTHING & OUTFIT:
-- REPRODUCE the person wearing the EXACT SAME clothes visible in the photo.
-- Match every detail: fabric color, clothing type, jacket/shirt style, collar.
-- Additionally, add ${tieInstruction} to the outfit.`;
-
-        } else {
-            let suitColor = suitSelection === 'custom suit'
-                ? `professional suit in color ${customSuitColor.value}`
-                : `professional ${suitSelection}`;
-            let tieColor = tieSelection === 'no tie'
-                ? 'without a tie'
-                : tieSelection === 'custom tie'
-                    ? `with a professional tie in color ${customTieColor.value}`
-                    : `with a professional ${tieSelection}`;
-            outfitInstructions = `CLOTHING & OUTFIT:
-- REPLACE the person's clothing with a ${suitColor} ${tieColor}.
-- The new outfit must look natural, well-fitted, and professional.
-- Ensure collar and shirt are visible under the jacket.`;
-        }
-
-        // ── TWO-STEP PIPELINE ──────────────────────────────────────────────────
-        // The nano-banana model cannot retouch faces AND change backgrounds in
-        // a single call — it prioritizes the background change and skips the
-        // face retouching. Solution: split into two focused API calls.
-        //
-        // CALL 1: Retouch face only (no background/outfit change)
-        // CALL 2: Apply background + outfit to the retouched result
-
-        // --- CREDIT CHECK FIRST ---
+        // Credit check
         const hasCredit = await checkAndDeductCredit(false);
         if (!hasCredit) {
             showMessage('Insufficient Credits. Please contact admin.', 'error');
@@ -321,130 +276,121 @@ async function generatePassportPhoto() {
             return;
         }
 
-        // FAL AI API Key
         let FAL_KEY;
-        try {
-            FAL_KEY = await getUserApiKey();
-        } catch (error) {
-            alert(error.message);
-            generateBtn.disabled = false;
-            return;
-        }
+        try { FAL_KEY = await getUserApiKey(); }
+        catch (err) { alert(err.message); generateBtn.disabled = false; return; }
 
-        const callFalAPI = async (imageData, prompt, strength, guidanceScale) => {
-            const res = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Key ${FAL_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    prompt,
-                    image_url: imageData,
-                    image_urls: [imageData],
-                    num_images: 1,
-                    output_format: 'jpeg',
-                    strength,
-                    guidance_scale: guidanceScale,
-                    safety_checker_version: "v1"
-                })
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.message || `API Error: ${res.status}`);
-            }
-            const data = await res.json();
-            if (!data.images || data.images.length === 0) throw new Error('No image returned from API');
-            return data.images[0].url;
-        };
+        const extraPrompt = document.getElementById('extraPrompt')?.value.trim() || '';
+        let prompt = '';
+        let strength = 0.88;
+        let guidanceScale = 15;
 
-        // ── CALL 1: Face Retouch & Lighting Fix ──────────────────────────────
-        showMessage('Step 1/2: Retouching face and fixing lighting...', 'info');
+        // ── MODE 1: Keep Original Outfit ──────────────────────────────────────
+        if (mode === 'keep_original') {
+            prompt = `You are a professional passport photo studio. RECREATE this person as a flawless, high-end passport photo.
 
-        const retouchPrompt = [
-            "Professional portrait retouching specialist. Your ONLY task right now is to retouch the face and fix the lighting. Do NOT change the background, clothing, or any other part of the image.",
-            "",
-            "FACE RETOUCHING (do all of these):",
-            "- Detect and fix uneven lighting: if one side of the face is darker due to sunlight, a lamp, or shadow — equalize it to flat, even, studio-quality frontal lighting.",
-            "- Remove ALL shadows from the face including side shadows, forehead shadows, and under-chin shadows.",
-            "- Remove ALL acne, pimples, blemishes, dark spots, scars, and skin imperfections.",
-            "- Remove under-eye dark circles and redness.",
-            "- Smooth skin texture naturally — realistic result, not plastic.",
-            "- Brighten and even out skin tone across the entire face and neck.",
-            "- Sharpen the face, eyes, and hair for high-resolution clarity.",
-            "- Keep beard, eyebrows, moustache, and all facial hair exactly as they are.",
-            "",
-            "LIGHTING:",
-            "- Apply flat, even frontal studio lighting (ring light effect).",
-            "- The face should be evenly lit from front — no directional shadows.",
-            "",
-            "IDENTITY — DO NOT CHANGE:",
-            "- Same person, same face shape, same features. Do NOT alter who this person is.",
-            "",
-            "KEEP UNCHANGED:",
-            "- Background stays exactly the same.",
-            "- Clothing stays exactly the same.",
-            "- Body position stays exactly the same.",
-            "- Only the face and lighting should be improved.",
-        ].join("\n");
+IDENTITY RULE: Keep the EXACT same person — same face structure, features, bone shape. Do NOT alter who this person is.
 
-        const retouchedImageUrl = await callFalAPI(base64Image, retouchPrompt, 0.75, 14);
+MANDATORY IMPROVEMENTS TO APPLY:
 
-        // Fetch retouched image as base64 to feed into Call 2
-        showMessage('Step 2/2: Applying background and outfit...', 'info');
-        const retouchedBase64 = await urlToBase64(retouchedImageUrl);
+FACE RETOUCHING — do every single one of these:
+- Detect and REMOVE all uneven lighting: equalize any dark side, sunlight shadow, or lamp shadow to flat even frontal studio light.
+- Remove ALL shadows from the face — side shadows, chin shadows, forehead shadows.
+- Remove ALL acne, pimples, blemishes, scars, dark spots, skin imperfections.
+- Remove under-eye dark circles and redness.
+- Smooth skin texture naturally (realistic skin — not plastic or over-smoothed).
+- Brighten and even out the skin tone across face and neck.
+- Sharpen the face, eyes, and hair for a crisp high-resolution result.
+- Keep beard, moustache, eyebrows, and all facial hair as they are.
 
-        // ── CALL 2: Background + Outfit ───────────────────────────────────────
-        const bgDescription = bgColor === '#ffffff'
-            ? 'Replace background with a clean, plain white (#ffffff) studio background'
-            : `Replace background with a solid flat color ${bgColor} — no gradients, no shadows, no objects`;
+LIGHTING: Apply flat even frontal ring-light studio lighting. No directional shadows.
 
-        const finalPromptParts = [
-            "Apply the following changes to this already-retouched passport photo:",
-            "",
-            "BACKGROUND:",
-            bgDescription + ".",
-            "The background must be completely flat, clean, and solid. No objects, no shadows.",
-            "",
-            "OUTFIT:",
-            outfitInstructions,
-            "",
-            "FACE — DO NOT TOUCH:",
-            "- The face has already been retouched. Do NOT modify, blur, or change the face in any way.",
-            "- Keep the face, skin, and lighting exactly as they appear in this image.",
-            "",
-            "FRAMING:",
-            "- Keep the same head and shoulder framing.",
-            "- Person must face forward. Head centered.",
-            "",
-            "OUTPUT:",
-            "- Professional high-resolution passport photo.",
-            "- No text, borders, or watermarks.",
-        ];
+OUTFIT: The person wears the EXACT same clothes as in the photo. Reproduce every detail of the original outfit in high quality — same color, style, fabric, collar. Do NOT change the clothing.
 
-        const extraPrompt = document.getElementById('extraPrompt').value.trim();
-        if (extraPrompt) {
-            finalPromptParts.push("");
-            finalPromptParts.push("ADDITIONAL USER INSTRUCTIONS:");
-            finalPromptParts.push(extraPrompt);
-        }
+BACKGROUND: ${bgDescription}.
 
-        const finalImageUrl = await callFalAPI(retouchedBase64, finalPromptParts.join("\n"), 0.72, 12);
+FRAMING: Head and upper shoulders only. Face centered. Top of head near frame top. Face height = 70-80% of frame.
 
-        // ── DEDUCT CREDIT AFTER BOTH CALLS SUCCEED ────────────────────────────
-        await checkAndDeductCredit(true);
+QUALITY: Upscale to high resolution. Sharp edges, no blur, no noise, no compression artifacts.
 
-        // Handle response
-        if (finalImageUrl) {
-            generatedImageUrl = finalImageUrl;
-            resultImage.src = finalImageUrl;
-            resultImage.classList.add('show');
-            resultPlaceholder.classList.add('hidden');
-            downloadBtn.classList.add('show');
-            showMessage('Photo generated successfully!', 'success');
+OUTPUT: Single professional studio passport photo. No text, no borders, no watermarks.
+${extraPrompt ? 'EXTRA: ' + extraPrompt : ''}`;
+            strength      = 0.88;
+            guidanceScale = 15;
+
+        // ── MODE 2: Change to Suit ─────────────────────────────────────────────
         } else {
-            throw new Error('No image returned from API');
+            const suitSelection = suitColorSelect?.value || 'dark business suit';
+            const tieSelection  = tieColorSelect?.value  || 'no tie';
+            const suitColor = suitSelection === 'custom suit'
+                ? `professional suit in color ${customSuitColor.value}`
+                : `professional ${suitSelection}`;
+            const tieColor = tieSelection === 'no tie'
+                ? 'without a tie'
+                : tieSelection === 'custom tie'
+                    ? `with a professional tie in color ${customTieColor.value}`
+                    : `with a professional ${tieSelection}`;
+
+            prompt = `Create a high-quality professional passport photo of this person.
+
+OUTFIT: Dress them in a ${suitColor} ${tieColor}. Well-fitted, natural-looking. Collar and shirt visible under jacket.
+
+FACE RETOUCHING:
+- Remove pimples, blemishes, dark spots, and skin imperfections.
+- Fix uneven lighting and shadows on the face.
+- Smooth skin naturally and brighten skin tone.
+- Sharpen face and eyes. Keep beard and facial hair unchanged.
+
+LIGHTING: Even flat frontal studio lighting. No shadows on face.
+
+BACKGROUND: ${bgDescription}.
+
+FRAMING: Head and shoulders only. Face centered. Top of head near top edge. Face = 70-80% frame height.
+
+IDENTITY: Same person — same face, same features. Do NOT change who this person is.
+
+OUTPUT: Single high-resolution professional passport photo. No text, no borders.
+${extraPrompt ? 'EXTRA: ' + extraPrompt : ''}`;
+            strength      = 0.72;
+            guidanceScale = 12;
         }
+
+        // API call
+        showMessage('Generating with AI...', 'info');
+        const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Key ${FAL_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt,
+                image_url:    base64Image,
+                image_urls:   [base64Image],
+                num_images:   1,
+                output_format: 'jpeg',
+                strength,
+                guidance_scale: guidanceScale,
+                safety_checker_version: 'v1'
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || `API Error: ${response.status}`);
+        }
+
+        const result   = await response.json();
+        const imageUrl = result?.images?.[0]?.url;
+        if (!imageUrl) throw new Error('No image returned from API');
+
+        await checkAndDeductCredit(true);
+        generatedImageUrl = imageUrl;
+        resultImage.src   = imageUrl;
+        resultImage.classList.add('show');
+        resultPlaceholder.classList.add('hidden');
+        downloadBtn.classList.add('show');
+        showMessage('✅ Passport photo generated successfully!', 'success');
 
     } catch (error) {
         console.error('Error:', error);
@@ -452,10 +398,10 @@ async function generatePassportPhoto() {
     } finally {
         generateBtn.disabled = false;
         loadingSpinner.classList.remove('show');
-        // Re-check to update UI
         checkAndDeductCredit(false);
     }
 }
+
 
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -466,18 +412,6 @@ function fileToBase64(file) {
     });
 }
 
-// Fetch a remote image URL and convert to base64 data URI
-// Used to pass Call 1's result image into Call 2
-async function urlToBase64(url) {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-}
 
 function clearAll() {
     selectedFile = null;
@@ -497,11 +431,14 @@ function clearAll() {
     // Reset customization
     bgColorPicker.value = '#ffffff';
     bgColorInput.value = '#ffffff';
-    suitColorSelect.value = 'keep original';
-    tieColorSelect.value = 'no tie';
-    customSuitColor.style.display = 'none';
-    customTieColor.style.display = 'none';
+    if (generationModeSelect) generationModeSelect.value = 'keep_original';
+    if (suitOptionsDiv) suitOptionsDiv.style.display = 'none';
+    if (suitColorSelect) suitColorSelect.selectedIndex = 0;
+    if (tieColorSelect) tieColorSelect.value = 'no tie';
+    if (customSuitColor) customSuitColor.style.display = 'none';
+    if (customTieColor) customTieColor.style.display = 'none';
 }
+
 
 function downloadImage() {
     if (!generatedImageUrl) {
