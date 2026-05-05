@@ -21,13 +21,33 @@ if (typeof firebase !== 'undefined') {
 
 // Auth State Logic
 function checkAuth(redirectIfFound = false) {
+    // Hide the body immediately to prevent flashing unauthenticated content
+    const style = document.createElement('style');
+    style.id = 'auth-hide-body';
+    style.innerHTML = 'body { display: none !important; }';
+    if (document.head) {
+        document.head.appendChild(style);
+    } else {
+        document.documentElement.appendChild(style);
+    }
+
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             // User IS logged in
             console.log('User:', user.email);
             if (redirectIfFound) {
                 // If on login page, go to dashboard
-                window.location.href = 'index.html';
+                // We handle relative paths just in case login is deep
+                const path = window.location.pathname;
+                if (path.includes('/tools/')) {
+                    window.location.href = '../../index.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                // If on protected page, reveal content
+                const s = document.getElementById('auth-hide-body');
+                if (s) s.remove();
             }
         } else {
             // User is NOT logged in
@@ -42,6 +62,10 @@ function checkAuth(redirectIfFound = false) {
                 } else {
                     window.location.href = 'login.html';
                 }
+            } else {
+                // If on login page, reveal content since user needs to log in
+                const s = document.getElementById('auth-hide-body');
+                if (s) s.remove();
             }
         }
     });
