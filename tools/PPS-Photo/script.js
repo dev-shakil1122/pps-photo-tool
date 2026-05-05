@@ -273,7 +273,7 @@ async function generatePassportPhoto() {
         }
 
         // Call FAL AI Direct
-        const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
+        const response = await fetch('https://fal.run/fal-ai/nano-banana-2/edit', {
             method: 'POST',
             headers: {
                 'Authorization': `Key ${FAL_KEY}`,
