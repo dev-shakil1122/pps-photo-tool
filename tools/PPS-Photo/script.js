@@ -308,133 +308,146 @@ async function generatePassportPhoto() {
             ? 'Replace background with a clean, plain white (#ffffff) studio background'
             : `Replace background with a solid flat color ${bgColor} — no gradients, no shadows, no objects`;
 
-        // --- PROFESSIONAL PASSPORT PHOTO PROMPT ---
-        // IMPORTANT: Face retouching is listed FIRST because AI models weight
-        // earlier instructions more heavily. This ensures retouching always
-        // happens regardless of what other changes are requested.
+        // ── TWO-STEP PIPELINE ──────────────────────────────────────────────────
+        // The nano-banana model cannot retouch faces AND change backgrounds in
+        // a single call — it prioritizes the background change and skips the
+        // face retouching. Solution: split into two focused API calls.
+        //
+        // CALL 1: Retouch face only (no background/outfit change)
+        // CALL 2: Apply background + outfit to the retouched result
 
-        const promptParts = [];
-
-        promptParts.push("CRITICAL PRIORITY #1 — FACE RETOUCHING (MUST DO FIRST, NO EXCEPTIONS):");
-        promptParts.push("This is the most important task. Before doing anything else, fully retouch the face:");
-        promptParts.push("- DETECT AND FIX uneven lighting on the face: if one side is darker, lighter, or has shadow from sunlight or a lamp, equalize it to studio-quality even lighting.");
-        promptParts.push("- Remove ALL shadows from the face — side shadows, under-chin shadows, forehead shadows.");
-        promptParts.push("- Remove ALL acne, pimples, blemishes, dark spots, scars, and skin imperfections from the face and neck.");
-        promptParts.push("- Remove under-eye dark circles and redness.");
-        promptParts.push("- Smooth skin texture naturally — realistic, not plastic.");
-        promptParts.push("- Brighten and even out skin tone across the entire face and neck.");
-        promptParts.push("- Sharpen the face, eyes, and hair for crisp high-resolution output.");
-        promptParts.push("- Keep beard, eyebrows, moustache, and all facial hair exactly as they are.");
-        promptParts.push("");
-
-        promptParts.push("CRITICAL PRIORITY #2 — LIGHTING CORRECTION:");
-        promptParts.push("- Replace any harsh, uneven, or directional lighting with flat, even studio lighting.");
-        promptParts.push("- If sunlight or a lamp is hitting one side of the face, REMOVE that directional light and replace with uniform frontal lighting.");
-        promptParts.push("- No shadows should remain on the face, neck, or background.");
-        promptParts.push("- Lighting should look like a professional studio passport photo taken with a ring light.");
-        promptParts.push("");
-
-        promptParts.push("PRIORITY #3 — IDENTITY (DO NOT CHANGE THESE):");
-        promptParts.push("- This MUST be the same person. Keep face shape, bone structure, and all facial features identical.");
-        promptParts.push("- Do NOT change eye shape, nose, lips, ears, or facial proportions.");
-        promptParts.push("- Do NOT make the person look like a different individual.");
-        promptParts.push("");
-
-        promptParts.push("PRIORITY #4 — FRAMING & ALIGNMENT:");
-        promptParts.push("- The image has already been pre-cropped to passport framing.");
-        promptParts.push("- Center the face horizontally. Top of head near top edge with small margin.");
-        promptParts.push("- Face (chin to top of head) should occupy 70-80% of frame height.");
-        promptParts.push("- Straighten any slight head tilt. Person must face directly forward.");
-        promptParts.push("");
-
-        promptParts.push("PRIORITY #5 — BACKGROUND:");
-        promptParts.push(bgDescription + ".");
-        promptParts.push("- Clean, completely flat background. No objects, no shadows, no gradients.");
-        promptParts.push("");
-
-        promptParts.push("PRIORITY #6 — OUTFIT:");
-        promptParts.push(outfitInstructions);
-        promptParts.push("");
-
-        promptParts.push("FINAL OUTPUT:");
-        promptParts.push("- Single high-resolution professional studio passport photo.");
-        promptParts.push("- No text, borders, watermarks, or extra elements.");
-        promptParts.push("- Face must look visibly retouched: clear skin, even lighting, sharp eyes.");
-
-        const extraPrompt = document.getElementById('extraPrompt').value.trim();
-        if (extraPrompt) {
-            promptParts.push("");
-            promptParts.push("ADDITIONAL USER INSTRUCTIONS (apply strictly):");
-            promptParts.push(extraPrompt);
-        }
-
-        const prompt = promptParts.join("\n");
-
-        const editStrength = 0.92;  // High: forces aggressive face retouch & lighting fix
-
-        // --- CREDIT CHECK ---
-        const hasCredit = await checkAndDeductCredit(false); // Check only
+        // --- CREDIT CHECK FIRST ---
+        const hasCredit = await checkAndDeductCredit(false);
         if (!hasCredit) {
             showMessage('Insufficient Credits. Please contact admin.', 'error');
-            generateBtn.disabled = true; // Keep disabled
+            generateBtn.disabled = true;
             loadingSpinner.classList.remove('show');
             return;
         }
 
-        // FAL AI API Key (Fetch from Database)
+        // FAL AI API Key
         let FAL_KEY;
         try {
             FAL_KEY = await getUserApiKey();
         } catch (error) {
             alert(error.message);
             generateBtn.disabled = false;
-            generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Photo';
             return;
         }
 
-        // Debug: Log the prompt to verify it's being built
-        // console.log("GENERATED PROMPT:", prompt);
+        const callFalAPI = async (imageData, prompt, strength, guidanceScale) => {
+            const res = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Key ${FAL_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt,
+                    image_url: imageData,
+                    image_urls: [imageData],
+                    num_images: 1,
+                    output_format: 'jpeg',
+                    strength,
+                    guidance_scale: guidanceScale,
+                    safety_checker_version: "v1"
+                })
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || `API Error: ${res.status}`);
+            }
+            const data = await res.json();
+            if (!data.images || data.images.length === 0) throw new Error('No image returned from API');
+            return data.images[0].url;
+        };
 
-        // Call FAL AI Direct
-        const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Key ${FAL_KEY}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                prompt: prompt,
-                image_url: base64Image,
-                image_urls: [base64Image],
-                num_images: 1,
-                output_format: 'png',
-                strength: editStrength,
-                guidance_scale: 12,            // Max adherence — ensures retouching instructions are followed
-                safety_checker_version: "v1"
-            })
-        });
+        // ── CALL 1: Face Retouch & Lighting Fix ──────────────────────────────
+        showMessage('Step 1/2: Retouching face and fixing lighting...', 'info');
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `API Error: ${response.status}`);
+        const retouchPrompt = [
+            "Professional portrait retouching specialist. Your ONLY task right now is to retouch the face and fix the lighting. Do NOT change the background, clothing, or any other part of the image.",
+            "",
+            "FACE RETOUCHING (do all of these):",
+            "- Detect and fix uneven lighting: if one side of the face is darker due to sunlight, a lamp, or shadow — equalize it to flat, even, studio-quality frontal lighting.",
+            "- Remove ALL shadows from the face including side shadows, forehead shadows, and under-chin shadows.",
+            "- Remove ALL acne, pimples, blemishes, dark spots, scars, and skin imperfections.",
+            "- Remove under-eye dark circles and redness.",
+            "- Smooth skin texture naturally — realistic result, not plastic.",
+            "- Brighten and even out skin tone across the entire face and neck.",
+            "- Sharpen the face, eyes, and hair for high-resolution clarity.",
+            "- Keep beard, eyebrows, moustache, and all facial hair exactly as they are.",
+            "",
+            "LIGHTING:",
+            "- Apply flat, even frontal studio lighting (ring light effect).",
+            "- The face should be evenly lit from front — no directional shadows.",
+            "",
+            "IDENTITY — DO NOT CHANGE:",
+            "- Same person, same face shape, same features. Do NOT alter who this person is.",
+            "",
+            "KEEP UNCHANGED:",
+            "- Background stays exactly the same.",
+            "- Clothing stays exactly the same.",
+            "- Body position stays exactly the same.",
+            "- Only the face and lighting should be improved.",
+        ].join("\n");
+
+        const retouchedImageUrl = await callFalAPI(base64Image, retouchPrompt, 0.75, 14);
+
+        // Fetch retouched image as base64 to feed into Call 2
+        showMessage('Step 2/2: Applying background and outfit...', 'info');
+        const retouchedBase64 = await urlToBase64(retouchedImageUrl);
+
+        // ── CALL 2: Background + Outfit ───────────────────────────────────────
+        const bgDescription = bgColor === '#ffffff'
+            ? 'Replace background with a clean, plain white (#ffffff) studio background'
+            : `Replace background with a solid flat color ${bgColor} — no gradients, no shadows, no objects`;
+
+        const finalPromptParts = [
+            "Apply the following changes to this already-retouched passport photo:",
+            "",
+            "BACKGROUND:",
+            bgDescription + ".",
+            "The background must be completely flat, clean, and solid. No objects, no shadows.",
+            "",
+            "OUTFIT:",
+            outfitInstructions,
+            "",
+            "FACE — DO NOT TOUCH:",
+            "- The face has already been retouched. Do NOT modify, blur, or change the face in any way.",
+            "- Keep the face, skin, and lighting exactly as they appear in this image.",
+            "",
+            "FRAMING:",
+            "- Keep the same head and shoulder framing.",
+            "- Person must face forward. Head centered.",
+            "",
+            "OUTPUT:",
+            "- Professional high-resolution passport photo.",
+            "- No text, borders, or watermarks.",
+        ];
+
+        const extraPrompt = document.getElementById('extraPrompt').value.trim();
+        if (extraPrompt) {
+            finalPromptParts.push("");
+            finalPromptParts.push("ADDITIONAL USER INSTRUCTIONS:");
+            finalPromptParts.push(extraPrompt);
         }
 
-        const result = await response.json();
+        const finalImageUrl = await callFalAPI(retouchedBase64, finalPromptParts.join("\n"), 0.72, 12);
 
-        // Handle response from nano-banana/edit model
-        if (result.images && result.images.length > 0) {
+        // ── DEDUCT CREDIT AFTER BOTH CALLS SUCCEED ────────────────────────────
+        await checkAndDeductCredit(true);
 
-            // --- DEDUCT CREDIT NOW ---
-            await checkAndDeductCredit(true); // Deduct
-
-            generatedImageUrl = result.images[0].url;
-            resultImage.src = result.images[0].url;
+        // Handle response
+        if (finalImageUrl) {
+            generatedImageUrl = finalImageUrl;
+            resultImage.src = finalImageUrl;
             resultImage.classList.add('show');
             resultPlaceholder.classList.add('hidden');
             downloadBtn.classList.add('show');
             showMessage('Photo generated successfully!', 'success');
         } else {
-            throw new Error('No images returned from API');
+            throw new Error('No image returned from API');
         }
 
     } catch (error) {
@@ -454,6 +467,19 @@ function fileToBase64(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = reject;
         reader.readAsDataURL(file);
+    });
+}
+
+// Fetch a remote image URL and convert to base64 data URI
+// Used to pass Call 1's result image into Call 2
+async function urlToBase64(url) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
     });
 }
 
