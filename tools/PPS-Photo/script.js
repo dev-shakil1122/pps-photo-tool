@@ -17,8 +17,6 @@ const downloadBtn = document.getElementById('downloadBtn');
 // Customization controls
 const bgColorPicker = document.getElementById('bgColorPicker');
 const bgColorInput = document.getElementById('bgColorInput');
-const generationModeSelect = document.getElementById('generationMode');
-const suitOptionsDiv = document.getElementById('suitOptions');
 const suitColorSelect = document.getElementById('suitColor');
 const customSuitColor = document.getElementById('customSuitColor');
 const tieColorSelect = document.getElementById('tieColor');
@@ -39,27 +37,23 @@ bgColorInput.addEventListener('change', (e) => {
     localStorage.setItem('bgColor', e.target.value);
 });
 
-// Mode selector — show/hide suit options
-if (generationModeSelect) {
-    generationModeSelect.addEventListener('change', (e) => {
-        const isSuitMode = e.target.value === 'change_suit';
-        suitOptionsDiv.style.display = isSuitMode ? 'flex' : 'none';
-    });
-}
-
 // Handle suit color selection
-if (suitColorSelect) {
-    suitColorSelect.addEventListener('change', (e) => {
-        customSuitColor.style.display = e.target.value === 'custom suit' ? 'block' : 'none';
-    });
-}
+suitColorSelect.addEventListener('change', (e) => {
+    customSuitColor.style.display = e.target.value === 'custom suit' ? 'block' : 'none';
+});
+
+customSuitColor.addEventListener('change', (e) => {
+    // No storage
+});
 
 // Handle tie color selection
-if (tieColorSelect) {
-    tieColorSelect.addEventListener('change', (e) => {
-        customTieColor.style.display = e.target.value === 'custom tie' ? 'block' : 'none';
-    });
-}
+tieColorSelect.addEventListener('change', (e) => {
+    customTieColor.style.display = e.target.value === 'custom tie' ? 'block' : 'none';
+});
+
+customTieColor.addEventListener('change', (e) => {
+    // No storage
+});
 
 // Upload box click handler
 if (uploadBox) {
@@ -128,274 +122,244 @@ if (generateBtn) generateBtn.addEventListener('click', generatePassportPhoto);
 if (clearBtn) clearBtn.addEventListener('click', clearAll);
 if (downloadBtn) downloadBtn.addEventListener('click', downloadImage);
 
-// ── Smart Pre-Crop ─────────────────────────────────────────────────────────
-// Before sending to AI, crop the image to head+shoulders (top-center 3:4 crop).
-// This ensures the AI receives a passport-framed input even when the original
-// is a wide shot, so it always outputs properly aligned results.
-function smartCropForPassport(file) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            const srcW = img.naturalWidth;
-            const srcH = img.naturalHeight;
-
-            // Passport ratio: 35mm wide x 45mm tall = ~0.778 (width/height)
-            const passportRatio = 35 / 45;
-
-            // Strategy: take the top 80% of the image (head area), centered horizontally
-            let cropH = Math.round(srcH * 0.80);
-            let cropW = Math.round(cropH * passportRatio);
-
-            // If crop width exceeds image width, constrain by width
-            if (cropW > srcW) {
-                cropW = srcW;
-                cropH = Math.round(cropW / passportRatio);
-            }
-
-            // Center horizontally; start from the very top
-            const cropX = Math.round((srcW - cropW) / 2);
-            const cropY = 0;
-
-            // Output at 600x770 (standard high-res passport dimensions)
-            canvas.width = 600;
-            canvas.height = 770;
-
-            ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, 600, 770);
-
-            resolve(canvas.toDataURL('image/jpeg', 0.95));
-        };
-        img.onerror = () => resolve(null); // fallback: return null on error
-        img.src = URL.createObjectURL(file);
-    });
-}
-
-// ── Brightness Normalization ────────────────────────────────────────────────
-// Analyzes the image brightness and applies a canvas filter to reduce extreme
-// highlights/shadows before sending to AI. This helps the AI see a more
-// balanced image and apply better retouching.
-function normalizeBrightness(source) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.naturalWidth || 600;
-            canvas.height = img.naturalHeight || 770;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // Sample brightness from a center region of the image
-            const sampleW = Math.min(canvas.width, 200);
-            const sampleH = Math.min(canvas.height, 200);
-            const sampleX = Math.floor((canvas.width - sampleW) / 2);
-            const sampleY = Math.floor((canvas.height - sampleH) / 4); // upper-center (face area)
-
-            const data = ctx.getImageData(sampleX, sampleY, sampleW, sampleH).data;
-            let totalBrightness = 0;
-            const pixelCount = data.length / 4;
-            for (let i = 0; i < data.length; i += 4) {
-                // Perceived brightness formula
-                totalBrightness += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
-            }
-            const avgBrightness = totalBrightness / pixelCount; // 0-255
-
-            // If brightness is normal (100-170), no adjustment needed
-            if (avgBrightness >= 90 && avgBrightness <= 175) {
-                resolve(canvas.toDataURL('image/jpeg', 0.95));
-                return;
-            }
-
-            // Apply CSS filter correction to normalize extreme lighting
-            let brightnessFilter = 1.0;
-            let contrastFilter = 1.0;
-
-            if (avgBrightness > 175) {
-                // Too bright (overexposed) — darken slightly
-                brightnessFilter = 0.85;
-                contrastFilter = 1.1;
-            } else if (avgBrightness < 90) {
-                // Too dark (underexposed) — brighten slightly
-                brightnessFilter = 1.25;
-                contrastFilter = 1.1;
-            }
-
-            // Apply correction using a second canvas with filter
-            const correctedCanvas = document.createElement('canvas');
-            correctedCanvas.width = canvas.width;
-            correctedCanvas.height = canvas.height;
-            const correctedCtx = correctedCanvas.getContext('2d');
-            correctedCtx.filter = `brightness(${brightnessFilter}) contrast(${contrastFilter})`;
-            correctedCtx.drawImage(canvas, 0, 0);
-
-            resolve(correctedCanvas.toDataURL('image/jpeg', 0.95));
-        };
-        img.onerror = () => resolve(null);
-
-        // Source can be a File object or a base64 string
-        if (typeof source === 'string') {
-            img.src = source;
-        } else {
-            img.src = URL.createObjectURL(source);
-        }
-    });
-}
-
-
 async function generatePassportPhoto() {
     if (!selectedFile) {
         showMessage('Please select an image first', 'error');
         return;
     }
 
+    // API Key check moved to backend
+
     generateBtn.disabled = true;
     loadingSpinner.classList.add('show');
     resultImage.classList.remove('show');
     downloadBtn.classList.remove('show');
-    showMessage('Preparing image...', 'info');
+    showMessage('Processing your photo...', 'info');
 
     try {
-        // Pre-crop + brightness normalize
-        const croppedBase64    = await smartCropForPassport(selectedFile);
-        const normalizedBase64 = await normalizeBrightness(croppedBase64 || selectedFile);
-        const base64Image      = normalizedBase64 || croppedBase64 || await fileToBase64(selectedFile);
+        // Convert image to base64
+        const base64Image = await fileToBase64(selectedFile);
 
+        // Get customization values
         const bgColor = bgColorInput.value;
-        const mode    = generationModeSelect ? generationModeSelect.value : 'keep_original';
-        const bgDescription = bgColor === '#ffffff'
-            ? 'plain white (#ffffff) studio background — clean, no shadows, no objects'
-            : `solid flat ${bgColor} background — clean, no shadows, no gradients`;
+        const suitSelection = suitColorSelect.value;
+        const tieSelection = tieColorSelect.value;
 
-        // Credit check
-        const hasCredit = await checkAndDeductCredit(false);
+        // Build outfit instructions based on selections
+        const keepOriginalOutfit = suitSelection === 'keep original';
+
+        let outfitInstructions = '';
+        if (keepOriginalOutfit && tieSelection === 'no tie') {
+            // Keep everything as is
+            outfitInstructions = `CLOTHING & OUTFIT:
+- PRESERVE the person's original clothing/outfit. 
+- Enhance the clearity of the outfit if it is blurry`;
+
+        } else if (keepOriginalOutfit && tieSelection !== 'no tie') {
+            // Keep outfit but add/change tie
+            let tieInstruction = '';
+            if (tieSelection === 'custom tie') {
+                const customColor = customTieColor.value;
+                tieInstruction = `add a professional tie in color ${customColor}`;
+            } else {
+                tieInstruction = `add a professional ${tieSelection}`;
+            }
+            outfitInstructions = `CLOTHING & OUTFIT:
+- PRESERVE the person's original clothing/outfit.
+- DO NOT modify shirt, jacket, or other garments design.
+- Enhance the clearity of the outfit if it is blurry
+- Only ${tieInstruction} if not already wearing one, or update tie color if already present
+`;
+        } else {
+            // Change outfit
+            let suitColor = '';
+            let tieColor = '';
+
+            if (suitSelection === 'custom suit') {
+                const customColor = customSuitColor.value;
+                suitColor = `professional suit in color ${customColor}`;
+            } else {
+                suitColor = `professional ${suitSelection}`;
+            }
+
+            if (tieSelection === 'no tie') {
+                tieColor = 'without a tie';
+            } else if (tieSelection === 'custom tie') {
+                const customColor = customTieColor.value;
+                tieColor = `with a professional tie in color ${customColor}`;
+            } else {
+                tieColor = `with a professional ${tieSelection}`;
+            }
+
+            outfitInstructions = `CLOTHING & OUTFIT:
+- CHANGE the person's outfit to wear a ${suitColor} ${tieColor}
+- Replace current clothing with the new professional outfit
+- Ensure the new outfit looks natural and professional`;
+        }
+
+        const bgDescription = bgColor === '#ffffff' ? 'Replace background with plain white' : `Replace background with solid color ${bgColor}`;
+
+        // NEW SIMPLIFIED PROMPT - Clear and concise for better AI understanding
+        // const promptParts = [];
+
+        // promptParts.push("Create a professional passport photo from this image.");
+        // promptParts.push("");
+        // promptParts.push("FACE ENHANCEMENT (PRIMARY FOCUS):");
+        // promptParts.push("- Carefully examine the face and remove ALL blemishes, spots, acne, and skin imperfect, do not remove beard ions");
+        // promptParts.push("- Remove dark spots, dark circles, and shadows from the face and neck area");
+        // promptParts.push("- Clear the face completely - make skin look clean and spotless");
+        // promptParts.push("- Brighten the entire face evenly - enhance the facial color to look fresh and healthy");
+        // promptParts.push("- Smooth skin texture naturally while keeping it realistic, not over-processed");
+        // promptParts.push("- Make the face look clear, radiant, and professional");
+        // promptParts.push("");
+        // promptParts.push("Keep the same person and identity exactly. Do not change face shape, facial proportions, or recognizable features.");
+        // promptParts.push("");
+        // promptParts.push("Improve overall image clarity and sharpness. Remove blur completely.");
+        // promptParts.push("");
+        // promptParts.push("Apply clean, even studio lighting with no harsh shadows on the face.");
+        // promptParts.push("");
+        // promptParts.push("Center the f if head and neck not straightace, align it straight, and ensure the person looks directly at the camera.");
+        // promptParts.push("");
+        // promptParts.push(bgDescription + ".");
+        // promptParts.push("");
+        // promptParts.push(outfitInstructions);
+
+        // const extraPrompt = document.getElementById('extraPrompt').value;
+        // if (extraPrompt) {
+        //     promptParts.push("");
+        //     promptParts.push("IMPORTANT USER REQUEST:");
+        //     promptParts.push("- " + extraPrompt);
+        //     promptParts.push("- Follow this instruction strictly while maintaining other requirements.");
+        // }
+
+        // const prompt = promptParts.join("\n");
+
+        // --- PROFESSIONAL PROMPT BUILDER ---
+
+        const promptParts = [];
+
+        promptParts.push("Create a professional biometric passport photo from this image.");
+        promptParts.push("");
+
+        promptParts.push("PRIMARY TASK: PROFESSIONAL FACE RETOUCHING");
+        promptParts.push("- Carefully retouch the face like a professional studio portrait.");
+        promptParts.push("- Perform professional portrait retouch similar to a studio photographer.");
+        promptParts.push("- Remove acne, blemishes, pimples, scars, dark spots and skin imperfections.");
+        promptParts.push("- Remove under-eye dark circles and facial shadows.");
+        promptParts.push("- Smooth skin texture naturally while keeping natural skin detail.");
+        promptParts.push("- Brighten facial skin tone evenly so the face looks fresh and healthy.");
+        promptParts.push("- Improve facial clarity and sharpness.");
+        promptParts.push("- Keep beard, moustache, and natural facial hair unchanged.");
+        promptParts.push("");
+
+        promptParts.push("IMPORTANT IDENTITY RULES:");
+        promptParts.push("- Keep the same person identity exactly.");
+        promptParts.push("- Do NOT change face shape.");
+        promptParts.push("- Do NOT change eyes, nose, lips, ears, or facial proportions.");
+        promptParts.push("- Do NOT beautify or modify facial structure.");
+        promptParts.push("");
+
+        promptParts.push("IMPORTANT:");
+        promptParts.push("Even if clothing remains unchanged, facial retouching MUST still be applied.");
+        promptParts.push("");
+
+        promptParts.push("LIGHTING:");
+        promptParts.push("- Apply clean professional studio lighting.");
+        promptParts.push("- Remove harsh shadows from the face.");
+        promptParts.push("- Make lighting even across the face and neck.");
+        promptParts.push("");
+
+        promptParts.push("FACE POSITION:");
+        promptParts.push("- Ensure the head is straight and centered.");
+        promptParts.push("- Person must face the camera directly.");
+        promptParts.push("");
+
+        promptParts.push("IMAGE QUALITY:");
+        promptParts.push("- Improve overall sharpness.");
+        promptParts.push("- Remove blur.");
+        promptParts.push("- Produce a clean high-resolution passport photo.");
+        promptParts.push("");
+
+        promptParts.push("BACKGROUND:");
+        promptParts.push(bgDescription + ".");
+        promptParts.push("");
+
+        promptParts.push(outfitInstructions);
+
+        const extraPrompt = document.getElementById('extraPrompt').value;
+
+        if (extraPrompt) {
+            promptParts.push("");
+            promptParts.push("USER EXTRA REQUEST:");
+            promptParts.push(extraPrompt);
+        }
+
+        const prompt = promptParts.join("\n");
+
+        // --- CREDIT CHECK ---
+        const hasCredit = await checkAndDeductCredit(false); // Check only
         if (!hasCredit) {
             showMessage('Insufficient Credits. Please contact admin.', 'error');
-            generateBtn.disabled = true;
+            generateBtn.disabled = true; // Keep disabled
             loadingSpinner.classList.remove('show');
             return;
         }
 
+        // FAL AI API Key (Fetch from Database)
         let FAL_KEY;
-        try { FAL_KEY = await getUserApiKey(); }
-        catch (err) { alert(err.message); generateBtn.disabled = false; return; }
-
-        const extraPrompt = document.getElementById('extraPrompt')?.value.trim() || '';
-        let prompt = '';
-        let strength = 0.88;
-        let guidanceScale = 15;
-
-        // ── MODE 1: Keep Original Outfit ──────────────────────────────────────
-        if (mode === 'keep_original') {
-            prompt = `You are a professional passport photo editor AI.
-
-Take the provided input image (blurry or clear) and transform it into a high-quality, official passport-size photograph.
-
-YOUR TASKS:
-1. Detect and center the face properly (straighten head, neck, and shoulders to a natural upright position).
-2. Crop to standard passport size (head centered, proper spacing above head and shoulders visible).
-3. Upscale the image to high resolution while preserving natural facial details.
-4. Fix blur and enhance sharpness without creating artificial artifacts.
-5. Adjust lighting evenly (remove harsh shadows, overexposure, and uneven tones).
-6. Clean the face: remove pimples, acne, minor blemishes, and skin imperfections while keeping a natural look (do NOT over-smooth).
-7. Normalize skin tone and color balance.
-8. Ensure neutral facial expression and natural eye alignment.
-9. Remove background and replace with ${bgDescription}.
-10. Ensure no distortion of facial features.
-11. Keep the person wearing the EXACT SAME clothes and outfit as in the original photo — do NOT change clothing.
-
-IMPORTANT RULES:
-- Keep the person's identity 100% accurate (no face alteration).
-- Do NOT beautify excessively or change facial structure.
-- Maintain realistic skin texture.
-- Ensure the output meets general passport standards (front-facing, clear, evenly lit, neutral background).
-
-OUTPUT REQUIREMENTS:
-- High-resolution, sharp, properly aligned passport-size image.
-- Professional studio-like lighting.
-- Ensure eyes are open and clearly visible.
-- Remove glasses glare if present.
-- Maintain formal framing (top of head to upper shoulders visible).
-- Output ratio: 3.5cm x 4.5cm (standard passport size).
-- Ready for official use. No text, no borders, no watermarks.
-${extraPrompt ? '\nADDITIONAL INSTRUCTIONS: ' + extraPrompt : ''}`;
-            strength      = 0.88;
-            guidanceScale = 15;
-
-
-        // ── MODE 2: Change to Suit ─────────────────────────────────────────────
-        } else {
-            const suitSelection = suitColorSelect?.value || 'dark business suit';
-            const tieSelection  = tieColorSelect?.value  || 'no tie';
-            const suitColor = suitSelection === 'custom suit'
-                ? `professional suit in color ${customSuitColor.value}`
-                : `professional ${suitSelection}`;
-            const tieColor = tieSelection === 'no tie'
-                ? 'without a tie'
-                : tieSelection === 'custom tie'
-                    ? `with a professional tie in color ${customTieColor.value}`
-                    : `with a professional ${tieSelection}`;
-
-            prompt = `Create a high-quality professional passport photo of this person.
-
-OUTFIT: Dress them in a ${suitColor} ${tieColor}. Well-fitted, natural-looking. Collar and shirt visible under jacket.
-
-FACE RETOUCHING:
-- Remove pimples, blemishes, dark spots, and skin imperfections.
-- Fix uneven lighting and shadows on the face.
-- Smooth skin naturally and brighten skin tone.
-- Sharpen face and eyes. Keep beard and facial hair unchanged.
-
-LIGHTING: Even flat frontal studio lighting. No shadows on face.
-
-BACKGROUND: ${bgDescription}.
-
-FRAMING: Head and shoulders only. Face centered. Top of head near top edge. Face = 70-80% frame height.
-
-IDENTITY: Same person — same face, same features. Do NOT change who this person is.
-
-OUTPUT: Single high-resolution professional passport photo. No text, no borders.
-${extraPrompt ? 'EXTRA: ' + extraPrompt : ''}`;
-            strength      = 0.72;
-            guidanceScale = 12;
+        try {
+            FAL_KEY = await getUserApiKey();
+        } catch (error) {
+            alert(error.message);
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Photo';
+            return;
         }
 
-        // API call
-        showMessage('Generating with AI...', 'info');
+        // Debug: Log the prompt to verify it's being built
+        // console.log("GENERATED PROMPT:", prompt);
+
+        // Call FAL AI Direct
         const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
             method: 'POST',
             headers: {
                 'Authorization': `Key ${FAL_KEY}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                prompt,
-                image_url:    base64Image,
-                image_urls:   [base64Image],
-                num_images:   1,
-                output_format: 'jpeg',
-                strength,
-                guidance_scale: guidanceScale,
-                safety_checker_version: 'v1'
+                prompt: prompt,
+                image_url: base64Image, // Try singular image_url for standard compatibility
+                image_urls: [base64Image], // Keep plural just in case
+                num_images: 1,
+                output_format: 'png',
+                strength: 0.65, // Allow significant changes (for outfit)
+                guidance_scale: 9, // Standard adherence to prompt
+                safety_checker_version: "v1" // Standard
             })
         });
 
         if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.message || `API Error: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `API Error: ${response.status}`);
         }
 
-        const result   = await response.json();
-        const imageUrl = result?.images?.[0]?.url;
-        if (!imageUrl) throw new Error('No image returned from API');
+        const result = await response.json();
 
-        await checkAndDeductCredit(true);
-        generatedImageUrl = imageUrl;
-        resultImage.src   = imageUrl;
-        resultImage.classList.add('show');
-        resultPlaceholder.classList.add('hidden');
-        downloadBtn.classList.add('show');
-        showMessage('✅ Passport photo generated successfully!', 'success');
+        // Handle response from nano-banana/edit model
+        if (result.images && result.images.length > 0) {
+
+            // --- DEDUCT CREDIT NOW ---
+            await checkAndDeductCredit(true); // Deduct
+
+            generatedImageUrl = result.images[0].url;
+            resultImage.src = result.images[0].url;
+            resultImage.classList.add('show');
+            resultPlaceholder.classList.add('hidden');
+            downloadBtn.classList.add('show');
+            showMessage('Photo generated successfully!', 'success');
+        } else {
+            throw new Error('No images returned from API');
+        }
 
     } catch (error) {
         console.error('Error:', error);
@@ -403,10 +367,10 @@ ${extraPrompt ? 'EXTRA: ' + extraPrompt : ''}`;
     } finally {
         generateBtn.disabled = false;
         loadingSpinner.classList.remove('show');
+        // Re-check to update UI
         checkAndDeductCredit(false);
     }
 }
-
 
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -416,7 +380,6 @@ function fileToBase64(file) {
         reader.readAsDataURL(file);
     });
 }
-
 
 function clearAll() {
     selectedFile = null;
@@ -436,14 +399,11 @@ function clearAll() {
     // Reset customization
     bgColorPicker.value = '#ffffff';
     bgColorInput.value = '#ffffff';
-    if (generationModeSelect) generationModeSelect.value = 'keep_original';
-    if (suitOptionsDiv) suitOptionsDiv.style.display = 'none';
-    if (suitColorSelect) suitColorSelect.selectedIndex = 0;
-    if (tieColorSelect) tieColorSelect.value = 'no tie';
-    if (customSuitColor) customSuitColor.style.display = 'none';
-    if (customTieColor) customTieColor.style.display = 'none';
+    suitColorSelect.value = 'keep original';
+    tieColorSelect.value = 'no tie';
+    customSuitColor.style.display = 'none';
+    customTieColor.style.display = 'none';
 }
-
 
 function downloadImage() {
     if (!generatedImageUrl) {

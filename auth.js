@@ -19,58 +19,32 @@ if (typeof firebase !== 'undefined') {
     console.error('Firebase SDK not loaded.');
 }
 
-// ── Auth Guard ──────────────────────────────────────────────────────────────
-// Immediately hide the page body to prevent content flash while Firebase
-// resolves the auth state (which can take 3-5 s on first load).
-document.documentElement.style.visibility = 'hidden';
-
-// Auto-run auth check on every page that loads auth.js.
-// Pages set data-auth="login" if they are the login page (redirect on success).
-// All other pages are treated as protected (redirect to login if no user).
-(function autoCheckAuth() {
-    const isLoginPage = document.currentScript
-        ? document.currentScript.getAttribute('data-auth') === 'login'
-        : document.querySelector('script[data-auth="login"]') !== null;
-
+// Auth State Logic
+function checkAuth(redirectIfFound = false) {
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-            // Authenticated — show the page
-            document.documentElement.style.visibility = 'visible';
-            if (isLoginPage) {
-                // On login page but already logged in → go to dashboard
-                window.location.href = getLoginRedirectBase() + 'index.html';
+            // User IS logged in
+            console.log('User:', user.email);
+            if (redirectIfFound) {
+                // If on login page, go to dashboard
+                window.location.href = 'index.html';
             }
         } else {
-            // Not authenticated
-            if (!isLoginPage) {
-                // Protected page → redirect to login
+            // User is NOT logged in
+            console.log('No user');
+            if (!redirectIfFound) {
+                // If on protected page, go to login
+                // Handle relative paths - Check if we are deep in tools
                 const path = window.location.pathname;
                 if (path.includes('/tools/')) {
+                    // Go up two levels from tools/TOOL_NAME/index.html
                     window.location.href = '../../login.html';
-                } else if (path.includes('/admin/')) {
-                    window.location.href = '../login.html';
                 } else {
                     window.location.href = 'login.html';
                 }
-            } else {
-                // On login page, not logged in → show login form
-                document.documentElement.style.visibility = 'visible';
             }
         }
     });
-}());
-
-function getLoginRedirectBase() {
-    const path = window.location.pathname;
-    if (path.includes('/tools/')) return '../../';
-    if (path.includes('/admin/')) return '../';
-    return '';
-}
-
-// Auth State Logic (kept for backward-compat; the auto-guard above handles most cases)
-function checkAuth(redirectIfFound = false) {
-    // No-op: the IIFE above already runs onAuthStateChanged automatically.
-    // This function is retained so older inline calls don't throw errors.
 }
 
 // --- NEW: Get API Key from Firestore ---

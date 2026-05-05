@@ -95,8 +95,11 @@
         </form>
     </div>
 
-    <script src="auth.js" data-auth="login"></script>
+    <script src="auth.js"></script>
     <script>
+        // Check if already logged in -> Redirect to index
+        checkAuth(true);
+
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
